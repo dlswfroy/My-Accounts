@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for generating natural language summaries of financial data.
+ * @fileOverview A Genkit flow for generating natural language summaries of financial data in Bengali.
  *
  * - monthlyFinancialSummary - A function that generates a financial summary for a given period.
  * - MonthlyFinancialSummaryInput - The input type for the monthlyFinancialSummary function.
@@ -40,11 +40,11 @@ const MonthlyFinancialSummaryOutputSchema = z.object({
   summary: z
     .string()
     .describe(
-      'A natural language summary of the financial situation for the given period, including total income, total expenses, and net balance.'
+      'A natural language summary of the financial situation for the given period in Bengali.'
     ),
   spendingInsights: z
     .array(z.string())
-    .describe('Actionable insights and observations about spending patterns.'),
+    .describe('Actionable insights and observations about spending patterns in Bengali.'),
 });
 export type MonthlyFinancialSummaryOutput = z.infer<typeof MonthlyFinancialSummaryOutputSchema>;
 
@@ -59,6 +59,8 @@ const prompt = ai.definePrompt({
   input: {schema: MonthlyFinancialSummaryInputSchema},
   output: {schema: MonthlyFinancialSummaryOutputSchema},
   prompt: `You are an expert financial analyst. Your task is to provide a concise and insightful natural language summary of the user's financial activity for the period described.
+
+**IMPORTANT: You MUST provide the output in BENGALI language (বাংলা ভাষায় উত্তর দিন).**
 
 Analyze the provided income and expense records for "{{{periodDescription}}}".
 Calculate the total income, total expenses, and the net balance.
@@ -87,7 +89,7 @@ No expense records for this period.
 {{/if}}
 
 ---
-Based on the data above, generate a financial summary and spending insights.
+Based on the data above, generate a financial summary and spending insights in Bengali.
 `,
 });
 
