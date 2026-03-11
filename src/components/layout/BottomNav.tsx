@@ -1,17 +1,18 @@
+
 "use client"
 
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, TrendingUp, TrendingDown, PieChart, Settings, HandCoins } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, TrendingDown, BookOpen, Settings, HandCoins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'ড্যাশবোর্ড', icon: LayoutDashboard, href: '/' },
   { label: 'আয়', icon: TrendingUp, href: '/income' },
   { label: 'ব্যয়', icon: TrendingDown, href: '/expenses' },
+  { label: 'ক্যাশ বুক', icon: BookOpen, href: '/cashbook' },
   { label: 'ঋণ', icon: HandCoins, href: '/loans' },
-  { label: 'রিপোর্ট', icon: PieChart, href: '/reports' },
   { label: 'সেটিং', icon: Settings, href: '/settings' },
 ];
 
