@@ -1,17 +1,22 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, ArrowUpCircle, ArrowDownCircle, HandCoins, AlertTriangle, Info } from 'lucide-react';
+import { Wallet, ArrowUpCircle, ArrowDownCircle, HandCoins, AlertTriangle, Info, Sparkles, Loader2 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { bn } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { monthlyFinancialSummary, type MonthlyFinancialSummaryOutput } from '@/ai/flows/monthly-financial-summary';
 
 export default function Dashboard() {
   const { transactions, loans, settings, isLoading } = useTransactions();
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [aiSummary, setAiSummary] = useState<MonthlyFinancialSummaryOutput | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
     setCurrentDate(new Date());
@@ -48,6 +53,28 @@ export default function Dashboard() {
       return false;
     }
   });
+
+  const handleGenerateAiSummary = async () => {
+    setIsAiLoading(true);
+    try {
+      const result = await monthlyFinancialSummary({
+        periodDescription: "এই মাস",
+        incomeRecords: transactions
+          .filter(t => t.type === 'income')
+          .slice(0, 20)
+          .map(t => ({ amount: t.amount, date: t.date, source: t.source || t.category })),
+        expenseRecords: transactions
+          .filter(t => t.type === 'expense')
+          .slice(0, 20)
+          .map(t => ({ amount: t.amount, date: t.date, category: t.category, purpose: t.purpose || '' })),
+      });
+      setAiSummary(result);
+    } catch (e) {
+      console.error("AI Error:", e);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6 pb-4">
@@ -86,6 +113,63 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* AI Advisor Section */}
+      <section className="px-1">
+        <Card className="bg-gradient-to-br from-white to-primary/5 border-2 border-primary/20 shadow-xl rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-sm font-black flex items-center gap-2 text-primary">
+              <Sparkles className="w-4 h-4" /> AI আর্থিক উপদেষ্টা
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-2 space-y-4">
+            {!aiSummary ? (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                  আপনার লেনদেন বিশ্লেষণ করে সঞ্চয়ের বুদ্ধিদীপ্ত পরামর্শ পেতে নিচের বাটনে ক্লিক করুন।
+                </p>
+                <Button 
+                  onClick={handleGenerateAiSummary} 
+                  disabled={isAiLoading}
+                  className="w-full rounded-2xl bg-primary hover:bg-primary/90 font-black text-xs h-10 shadow-lg"
+                >
+                  {isAiLoading ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> বিশ্লেষণ করা হচ্ছে...</>
+                  ) : (
+                    <><Sparkles className="w-4 h-4 mr-2" /> পরামর্শ নিন</>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4 animate-in fade-in duration-500">
+                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                  <p className="text-xs font-bold text-foreground leading-relaxed">
+                    {aiSummary.summary}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase text-primary tracking-widest">টিপসসমূহ:</p>
+                  <ul className="space-y-2">
+                    {aiSummary.spendingInsights.map((tip, idx) => (
+                      <li key={idx} className="flex gap-2 items-start text-[11px] font-medium text-muted-foreground">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1 shrink-0" />
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setAiSummary(null)}
+                  className="w-full text-[10px] font-black text-muted-foreground hover:text-primary"
+                >
+                  পুনরায় বিশ্লেষণ করুন
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
       {upcomingLoanAlerts.length > 0 && (
