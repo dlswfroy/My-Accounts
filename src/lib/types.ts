@@ -1,3 +1,4 @@
+
 export type TransactionType = 'income' | 'expense';
 
 export interface Transaction {
@@ -27,6 +28,7 @@ export interface UserSettings {
   email: string;
   mobile: string;
   currency: string;
+  isAdmin: boolean;
   incomeCategories: string[];
   expenseCategories: string[];
 }

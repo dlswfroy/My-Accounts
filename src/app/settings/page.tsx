@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -6,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Tag, Plus, X, ShieldAlert, Mail, Phone } from 'lucide-react';
+import { User, Tag, Plus, X, ShieldAlert, Mail, Phone, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export default function Settings() {
   const { settings, updateSettings, isLoading } = useTransactions();
@@ -63,16 +65,26 @@ export default function Settings() {
 
   const handleClearAll = () => {
     if (confirm('আপনি কি নিশ্চিত যে আপনি সব তথ্য মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা সম্ভব নয়।')) {
-      localStorage.removeItem('my_accounts_transactions');
-      localStorage.removeItem('my_accounts_loans');
-      localStorage.removeItem('my_accounts_settings');
-      window.location.reload();
+      // In a Firebase app, we usually don't clear localStorage for reset, 
+      // but we might want to inform the user how to reset data.
+      toast({
+        variant: "destructive",
+        title: "অপারেশন সফল নয়",
+        description: "ক্লাউড ডেটা মুছতে এডমিন প্যানেল ব্যবহার করুন।"
+      });
     }
   };
 
   return (
     <div className="space-y-6 pb-6">
-      <h1 className="text-2xl font-bold font-headline">সেটিং</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold font-headline">সেটিং</h1>
+        {settings.isAdmin && (
+          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 gap-1 px-3 py-1">
+            <ShieldCheck className="w-3 h-3" /> এডমিন
+          </Badge>
+        )}
+      </div>
 
       <Card className="bg-white border-none shadow-sm">
         <CardHeader>
@@ -180,11 +192,11 @@ export default function Settings() {
             <ShieldAlert className="w-5 h-5" />
             বিপদজনক এলাকা
           </CardTitle>
-          <CardDescription>সব তথ্য চিরস্থায়ীভাবে মুছে ফেলুন</CardDescription>
+          <CardDescription>অ্যাপের তথ্য ব্যবস্থাপনা</CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="destructive" className="w-full" onClick={handleClearAll}>
-            সকল তথ্য মুছুন (Reset App)
+            তথ্য মুছুন (Reset Data)
           </Button>
         </CardContent>
       </Card>

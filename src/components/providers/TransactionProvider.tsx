@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useEffect } from 'react';
 import { Transaction, UserSettings, Loan } from '@/lib/types';
 import { 
   useCollection, 
@@ -44,6 +44,7 @@ const defaultSettings: UserSettings = {
   email: '',
   mobile: '',
   currency: '৳',
+  isAdmin: false,
   incomeCategories: defaultIncomeCategories,
   expenseCategories: defaultExpenseCategories,
 };
@@ -74,12 +75,32 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   const { data: loans = [], loading: loanLoading } = useCollection<Loan>(loansQuery);
   const { data: remoteSettings, loading: settingsLoading } = useDoc<UserSettings>(settingsDocRef);
 
+  // Initialize profile if it doesn't exist
+  useEffect(() => {
+    if (!settingsLoading && !remoteSettings && user && settingsDocRef) {
+      const initialSettings: UserSettings = {
+        ...defaultSettings,
+        userName: user.displayName || 'ব্যবহারকারী',
+        email: user.email || '',
+        isAdmin: true, // Making the user an admin on first profile creation
+      };
+      setDoc(settingsDocRef, initialSettings, { merge: true }).catch(async (e) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: settingsDocRef.path,
+          operation: 'create',
+          requestResourceData: initialSettings,
+        }));
+      });
+    }
+  }, [remoteSettings, settingsLoading, user, settingsDocRef]);
+
   const settings = useMemo(() => {
     return { 
       ...defaultSettings, 
       ...remoteSettings,
       email: user?.email || remoteSettings?.email || '',
-      userName: user?.displayName || remoteSettings?.userName || defaultSettings.userName
+      userName: user?.displayName || remoteSettings?.userName || defaultSettings.userName,
+      isAdmin: remoteSettings?.isAdmin ?? false
     };
   }, [remoteSettings, user]);
 
@@ -131,12 +152,12 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
 
     const loanRef = doc(db, 'users', user.uid, 'loans', loanId);
     updateDoc(loanRef, {
-      paidAmount: loan.paidAmount + amount
+      paidAmount: (loan.paidAmount || 0) + amount
     }).catch(async (e) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: loanRef.path,
         operation: 'update',
-        requestResourceData: { paidAmount: loan.paidAmount + amount },
+        requestResourceData: { paidAmount: (loan.paidAmount || 0) + amount },
       }));
     });
 
