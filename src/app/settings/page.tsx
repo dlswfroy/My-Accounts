@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Tag, Plus, X, Mail, Phone, ShieldCheck } from 'lucide-react';
+import { User, Tag, Plus, X, Mail, Phone, ShieldCheck, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
@@ -14,161 +15,85 @@ export default function Settings() {
   const { settings, updateSettings, isLoading } = useTransactions();
   const { toast } = useToast();
   
-  const [profile, setProfile] = useState({
-    userName: '',
-    email: '',
-    mobile: ''
-  });
+  const [profile, setProfile] = useState({ userName: '', email: '', mobile: '' });
+  const [newCat, setNewCat] = useState({ income: '', expense: '' });
+  const [budgetVal, setBudgetVal] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isLoading) {
-      setProfile({
-        userName: settings.userName,
-        email: settings.email || '',
-        mobile: settings.mobile || ''
-      });
+      setProfile({ userName: settings.userName, email: settings.email || '', mobile: settings.mobile || '' });
+      const b: Record<string, string> = {};
+      Object.entries(settings.budgets).forEach(([k, v]) => b[k] = v.toString());
+      setBudgetVal(b);
     }
   }, [settings, isLoading]);
-
-  const [newCat, setNewCat] = useState({ income: '', expense: '' });
 
   if (isLoading) return null;
 
   const handleSaveProfile = () => {
     updateSettings(profile);
-    toast({ title: 'সফল হয়েছে!', description: 'প্রোফাইল তথ্য আপডেট করা হয়েছে।' });
+    toast({ title: 'সফল!', description: 'প্রোফাইল আপডেট করা হয়েছে।' });
   };
 
-  const handleAddCategory = (type: 'income' | 'expense') => {
-    const val = newCat[type].trim();
-    if (!val) return;
-    
-    if (type === 'income') {
-      if (settings.incomeCategories.includes(val)) return;
-      updateSettings({ incomeCategories: [...settings.incomeCategories, val] });
-      setNewCat({ ...newCat, income: '' });
-    } else {
-      if (settings.expenseCategories.includes(val)) return;
-      updateSettings({ expenseCategories: [...settings.expenseCategories, val] });
-      setNewCat({ ...newCat, expense: '' });
-    }
-  };
-
-  const handleRemoveCategory = (type: 'income' | 'expense', cat: string) => {
-    if (type === 'income') {
-      updateSettings({ incomeCategories: settings.incomeCategories.filter(c => c !== cat) });
-    } else {
-      updateSettings({ expenseCategories: settings.expenseCategories.filter(c => c !== cat) });
-    }
+  const handleSetBudget = (cat: string, val: string) => {
+    const num = parseFloat(val) || 0;
+    const newBudgets = { ...settings.budgets, [cat]: num };
+    if (num <= 0) delete newBudgets[cat];
+    updateSettings({ budgets: newBudgets });
+    toast({ title: 'বাজেট সেট হয়েছে', description: `${cat} খাতের বাজেট আপডেট করা হয়েছে।` });
   };
 
   return (
     <div className="space-y-6 pb-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold font-headline">সেটিং</h1>
-        {settings.isAdmin && (
-          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 gap-1 px-3 py-1">
-            <ShieldCheck className="w-3 h-3" /> এডমিন
-          </Badge>
-        )}
+        <h1 className="text-2xl font-black font-headline uppercase text-primary">সেটিং</h1>
       </div>
 
-      <Card className="bg-white border-none shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            প্রোফাইল
-          </CardTitle>
-          <CardDescription>আপনার ব্যক্তিগত তথ্য পরিবর্তন করুন</CardDescription>
-        </CardHeader>
+      <Card className="bg-white border-none shadow-sm rounded-[2rem]">
+        <CardHeader><CardTitle className="text-lg flex items-center gap-2 font-black uppercase"><User className="w-5 h-5 text-primary" /> প্রোফাইল</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2"><User className="w-4 h-4" /> আপনার নাম</Label>
-            <Input 
-              value={profile.userName} 
-              onChange={e => setProfile({...profile, userName: e.target.value})} 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2"><Mail className="w-4 h-4" /> ইমেইল</Label>
-            <Input 
-              type="email"
-              value={profile.email} 
-              onChange={e => setProfile({...profile, email: e.target.value})} 
-              placeholder="example@mail.com"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2"><Phone className="w-4 h-4" /> মোবাইল নম্বর</Label>
-            <Input 
-              type="tel"
-              value={profile.mobile} 
-              onChange={e => setProfile({...profile, mobile: e.target.value})} 
-              placeholder="017XXXXXXXX"
-            />
-          </div>
-          <Button onClick={handleSaveProfile} className="w-full bg-primary hover:bg-primary/90 mt-2">সংরক্ষণ করুন</Button>
+          <div className="space-y-2"><Label className="font-bold">আপনার নাম</Label><Input value={profile.userName} onChange={e => setProfile({...profile, userName: e.target.value})} className="rounded-xl" /></div>
+          <div className="space-y-2"><Label className="font-bold">মোবাইল নম্বর</Label><Input value={profile.mobile} onChange={e => setProfile({...profile, mobile: e.target.value})} className="rounded-xl" /></div>
+          <Button onClick={handleSaveProfile} className="w-full bg-primary font-black uppercase rounded-xl">সংরক্ষণ করুন</Button>
         </CardContent>
       </Card>
 
-      <Card className="bg-white border-none shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Tag className="w-5 h-5 text-primary" />
-            আয়ের ক্যাটাগরি
-          </CardTitle>
-        </CardHeader>
+      {/* Budget Management */}
+      <Card className="bg-white border-none shadow-sm rounded-[2rem]">
+        <CardHeader><CardTitle className="text-lg flex items-center gap-2 font-black uppercase"><Target className="w-5 h-5 text-primary" /> মাসিক বাজেট সেট করুন</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {settings.incomeCategories.map(cat => (
-              <div key={cat} className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-2 group">
-                {cat}
-                <button onClick={() => handleRemoveCategory('income', cat)} className="hover:text-primary">
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input 
-              placeholder="নতুন ক্যাটাগরি" 
-              value={newCat.income} 
-              onChange={e => setNewCat({...newCat, income: e.target.value})} 
-            />
-            <Button onClick={() => handleAddCategory('income')} variant="outline" size="icon">
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white border-none shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Tag className="w-5 h-5 text-primary" />
-            ব্যয়ের ক্যাটাগরি
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid gap-4">
             {settings.expenseCategories.map(cat => (
-              <div key={cat} className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-2 group">
-                {cat}
-                <button onClick={() => handleRemoveCategory('expense', cat)} className="hover:text-primary">
-                  <X className="w-3 h-3" />
-                </button>
+              <div key={cat} className="flex items-center gap-3">
+                <Label className="flex-1 font-bold text-xs uppercase">{cat}</Label>
+                <div className="flex gap-2 w-32">
+                  <Input 
+                    type="number" 
+                    placeholder="বাজেট" 
+                    className="h-8 rounded-lg text-xs" 
+                    value={budgetVal[cat] || ''} 
+                    onChange={e => setBudgetVal({...budgetVal, [cat]: e.target.value})}
+                  />
+                  <Button size="sm" onClick={() => handleSetBudget(cat, budgetVal[cat])} className="h-8 px-2"><Plus className="w-3 h-3" /></Button>
+                </div>
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
-            <Input 
-              placeholder="নতুন ক্যাটাগরি" 
-              value={newCat.expense} 
-              onChange={e => setNewCat({...newCat, expense: e.target.value})} 
-            />
-            <Button onClick={() => handleAddCategory('expense')} variant="outline" size="icon">
-              <Plus className="w-4 h-4" />
-            </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white border-none shadow-sm rounded-[2rem]">
+        <CardHeader><CardTitle className="text-lg flex items-center gap-2 font-black uppercase"><Tag className="w-5 h-5 text-primary" /> ক্যাটাগরি ব্যবস্থাপনা</CardTitle></CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label className="font-black text-[10px] uppercase text-muted-foreground">ব্যয় ক্যাটাগরি</Label>
+            <div className="flex flex-wrap gap-2">
+              {settings.expenseCategories.map(cat => (
+                <Badge key={cat} variant="secondary" className="rounded-xl py-1 px-3 bg-primary/5 text-primary border-primary/10">
+                  {cat} <X className="w-3 h-3 ml-2 cursor-pointer" onClick={() => updateSettings({ expenseCategories: settings.expenseCategories.filter(c => c !== cat) })} />
+                </Badge>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -31,4 +31,5 @@ export interface UserSettings {
   isAdmin: boolean;
   incomeCategories: string[];
   expenseCategories: string[];
+  budgets: Record<string, number>;
 }

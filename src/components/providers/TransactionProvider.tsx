@@ -18,10 +18,9 @@ import {
   deleteDoc, 
   updateDoc, 
   query, 
-  orderBy,
-  Firestore 
+  orderBy 
 } from 'firebase/firestore';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface TransactionContextType {
   transactions: Transaction[];
@@ -48,6 +47,7 @@ const defaultSettings: UserSettings = {
   isAdmin: false,
   incomeCategories: defaultIncomeCategories,
   expenseCategories: defaultExpenseCategories,
+  budgets: {}
 };
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
@@ -56,7 +56,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   const { user, loading: userLoading } = useUser();
   const db = useFirestore();
 
-  // Firestore Collections & Docs
   const transactionsQuery = useMemo(() => {
     if (!db || !user) return null;
     return query(collection(db, 'users', user.uid, 'transactions'), orderBy('createdAt', 'desc'));
@@ -76,14 +75,13 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   const { data: loans = [], loading: loanLoading } = useCollection<Loan>(loansQuery);
   const { data: remoteSettings, loading: settingsLoading } = useDoc<UserSettings>(settingsDocRef);
 
-  // Initialize profile if it doesn't exist
   useEffect(() => {
     if (!settingsLoading && !remoteSettings && user && settingsDocRef) {
       const initialSettings: UserSettings = {
         ...defaultSettings,
         userName: user.displayName || 'ব্যবহারকারী',
         email: user.email || '',
-        isAdmin: true, // Making the user an admin on first profile creation
+        isAdmin: true,
       };
       setDoc(settingsDocRef, initialSettings, { merge: true }).catch(async (e) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -99,9 +97,7 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     return { 
       ...defaultSettings, 
       ...remoteSettings,
-      email: user?.email || remoteSettings?.email || '',
-      userName: user?.displayName || remoteSettings?.userName || defaultSettings.userName,
-      isAdmin: remoteSettings?.isAdmin ?? false
+      budgets: remoteSettings?.budgets || {},
     };
   }, [remoteSettings, user]);
 
@@ -111,75 +107,31 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     if (!db || !user) return;
     const colRef = collection(db, 'users', user.uid, 'transactions');
     const newTx = { ...tx, createdAt: Date.now() };
-    
-    addDoc(colRef, newTx).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: colRef.path,
-        operation: 'create',
-        requestResourceData: newTx,
-      }));
-    });
+    addDoc(colRef, newTx);
   };
 
   const deleteTransaction = (id: string) => {
     if (!db || !user) return;
-    const docRef = doc(db, 'users', user.uid, 'transactions', id);
-    deleteDoc(docRef).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'delete',
-      }));
-    });
+    deleteDoc(doc(db, 'users', user.uid, 'transactions', id));
   };
 
   const addLoan = (loan: Omit<Loan, 'id' | 'createdAt' | 'paidAmount'>) => {
     if (!db || !user) return;
-    const colRef = collection(db, 'users', user.uid, 'loans');
-    const newLoan = { ...loan, paidAmount: 0, createdAt: Date.now() };
-    
-    addDoc(colRef, newLoan).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: colRef.path,
-        operation: 'create',
-        requestResourceData: newLoan,
-      }));
-    });
+    addDoc(collection(db, 'users', user.uid, 'loans'), { ...loan, paidAmount: 0, createdAt: Date.now() });
   };
 
   const updateLoan = (loanId: string, updates: Partial<Loan>) => {
     if (!db || !user) return;
-    const loanRef = doc(db, 'users', user.uid, 'loans', loanId);
-    updateDoc(loanRef, updates).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: loanRef.path,
-        operation: 'update',
-        requestResourceData: updates,
-      }));
-    });
+    updateDoc(doc(db, 'users', user.uid, 'loans', loanId), updates);
   };
 
   const updateLoanPayment = (loanId: string, amount: number, nextDueDate?: string) => {
     if (!db || !user) return;
     const loan = loans.find(l => l.id === loanId);
     if (!loan) return;
-
-    const loanRef = doc(db, 'users', user.uid, 'loans', loanId);
-    const updates: any = {
-      paidAmount: (loan.paidAmount || 0) + amount
-    };
-    if (nextDueDate) {
-      updates.dueDate = nextDueDate;
-    }
-
-    updateDoc(loanRef, updates).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: loanRef.path,
-        operation: 'update',
-        requestResourceData: updates,
-      }));
-    });
-
-    // Also add an expense transaction
+    const updates: any = { paidAmount: (loan.paidAmount || 0) + amount };
+    if (nextDueDate) updates.dueDate = nextDueDate;
+    updateDoc(doc(db, 'users', user.uid, 'loans', loanId), updates);
     addTransaction({
       type: 'expense',
       amount: amount,
@@ -192,25 +144,12 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
 
   const deleteLoan = (id: string) => {
     if (!db || !user) return;
-    const docRef = doc(db, 'users', user.uid, 'loans', id);
-    deleteDoc(docRef).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'delete',
-      }));
-    });
+    deleteDoc(doc(db, 'users', user.uid, 'loans', id));
   };
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
     if (!db || !user || !settingsDocRef) return;
-    const updated = { ...settings, ...newSettings };
-    setDoc(settingsDocRef, updated, { merge: true }).catch(async (e) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: settingsDocRef.path,
-        operation: 'update',
-        requestResourceData: updated,
-      }));
-    });
+    setDoc(settingsDocRef, { ...settings, ...newSettings }, { merge: true });
   };
 
   return (
@@ -225,8 +164,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
 
 export function useTransactions() {
   const context = useContext(TransactionContext);
-  if (context === undefined) {
-    throw new Error('useTransactions must be used within a TransactionProvider');
-  }
+  if (context === undefined) throw new Error('useTransactions must be used within a TransactionProvider');
   return context;
 }

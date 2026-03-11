@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Transaction": {
@@ -41,7 +42,8 @@
         "currency": { "type": "string" },
         "isAdmin": { "type": "boolean" },
         "incomeCategories": { "type": "array", "items": { "type": "string" } },
-        "expenseCategories": { "type": "array", "items": { "type": "string" } }
+        "expenseCategories": { "type": "array", "items": { "type": "string" } },
+        "budgets": { "type": "object", "additionalProperties": { "type": "number" } }
       }
     }
   },
