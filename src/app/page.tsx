@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -24,8 +25,9 @@ export default function Dashboard() {
 
   const currentDebt = loans.reduce((sum, l) => sum + (l.totalAmount - l.paidAmount), 0);
   
-  const netBalance = (totalIncome - totalExpenses) - currentDebt;
+  // নিট অবশিষ্ট = (আয় - ব্যয়) - বকেয়া ঋণ
   const cashBalance = totalIncome - totalExpenses;
+  const netBalance = cashBalance - currentDebt;
 
   // ১৫ দিনের মধ্যে পরিশোধের তারিখ আছে এমন ঋণের তালিকা
   const upcomingLoanAlerts = loans.filter(loan => {
@@ -38,7 +40,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <section className="space-y-2">
         <div className="flex justify-between items-end">
-          <h2 className="text-lg font-semibold text-muted-foreground">নিট ব্যালেন্স (ঋণ সহ)</h2>
+          <h2 className="text-lg font-semibold text-muted-foreground">অবশিষ্ট ব্যালেন্স (ঋণ সহ)</h2>
           <p className="text-xs text-muted-foreground">{settings.userName}</p>
         </div>
         <div className="bg-primary p-8 rounded-[2rem] text-primary-foreground shadow-xl relative overflow-hidden group">

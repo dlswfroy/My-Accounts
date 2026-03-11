@@ -1,9 +1,10 @@
+
 "use client"
 
 import React from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart as ChartIcon, HandCoins } from 'lucide-react';
+import { PieChart as ChartIcon, HandCoins, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 export default function Reports() {
@@ -24,6 +25,9 @@ export default function Reports() {
   const totalLoanPaid = loans.reduce((sum, l) => sum + l.paidAmount, 0);
   const currentDebt = totalLoanTaken - totalLoanPaid;
 
+  const cashBalance = totalIncome - totalExpenses;
+  const netBalance = cashBalance - currentDebt;
+
   const expenseByCategory = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
@@ -42,8 +46,8 @@ export default function Reports() {
           <CardTitle className="text-sm font-medium opacity-80">সামগ্রিক পরিসংখ্যান</CardTitle>
           <div className="flex justify-between items-end mt-2">
             <div>
-              <p className="text-3xl font-bold">{settings.currency}{(totalIncome - totalExpenses).toLocaleString()}</p>
-              <p className="text-xs opacity-70">নিট ব্যালেন্স</p>
+              <p className="text-3xl font-bold">{settings.currency}{netBalance.toLocaleString()}</p>
+              <p className="text-xs opacity-70">প্রকৃত অবশিষ্ট (ঋণ পরিশোধের পর)</p>
             </div>
             <ChartIcon className="w-8 h-8 opacity-20" />
           </div>
@@ -51,12 +55,22 @@ export default function Reports() {
         <CardContent className="p-0">
           <div className="flex divide-x divide-border">
             <div className="flex-1 p-4 text-center">
-              <p className="text-xs text-muted-foreground uppercase font-semibold">আয়</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center justify-center gap-1">
+                <TrendingUp className="w-3 h-3 text-green-600" /> আয়
+              </p>
               <p className="text-lg font-bold text-green-600">{settings.currency}{totalIncome.toLocaleString()}</p>
             </div>
             <div className="flex-1 p-4 text-center">
-              <p className="text-xs text-muted-foreground uppercase font-semibold">ব্যয়</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center justify-center gap-1">
+                <TrendingDown className="w-3 h-3 text-primary" /> ব্যয়
+              </p>
               <p className="text-lg font-bold text-primary">{settings.currency}{totalExpenses.toLocaleString()}</p>
+            </div>
+            <div className="flex-1 p-4 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center justify-center gap-1">
+                <Wallet className="w-3 h-3 text-blue-600" /> নগদ
+              </p>
+              <p className="text-lg font-bold text-blue-600">{settings.currency}{cashBalance.toLocaleString()}</p>
             </div>
           </div>
         </CardContent>
@@ -69,7 +83,7 @@ export default function Reports() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <HandCoins className="w-5 h-5 text-primary" />
-                <span className="font-medium">মোট ঋণ</span>
+                <span className="font-medium">বকেয়া ঋণ</span>
               </div>
               <span className="font-bold text-primary">{settings.currency}{currentDebt.toLocaleString()}</span>
             </div>
