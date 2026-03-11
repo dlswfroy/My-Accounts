@@ -30,7 +30,8 @@ interface TransactionContextType {
   addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt'>) => void;
   deleteTransaction: (id: string) => void;
   addLoan: (loan: Omit<Loan, 'id' | 'createdAt' | 'paidAmount'>) => void;
-  updateLoanPayment: (loanId: string, amount: number) => void;
+  updateLoan: (loanId: string, updates: Partial<Loan>) => void;
+  updateLoanPayment: (loanId: string, amount: number, nextDueDate?: string) => void;
   deleteLoan: (id: string) => void;
   updateSettings: (settings: Partial<UserSettings>) => void;
   isLoading: boolean;
@@ -145,19 +146,36 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     });
   };
 
-  const updateLoanPayment = (loanId: string, amount: number) => {
+  const updateLoan = (loanId: string, updates: Partial<Loan>) => {
+    if (!db || !user) return;
+    const loanRef = doc(db, 'users', user.uid, 'loans', loanId);
+    updateDoc(loanRef, updates).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: loanRef.path,
+        operation: 'update',
+        requestResourceData: updates,
+      }));
+    });
+  };
+
+  const updateLoanPayment = (loanId: string, amount: number, nextDueDate?: string) => {
     if (!db || !user) return;
     const loan = loans.find(l => l.id === loanId);
     if (!loan) return;
 
     const loanRef = doc(db, 'users', user.uid, 'loans', loanId);
-    updateDoc(loanRef, {
+    const updates: any = {
       paidAmount: (loan.paidAmount || 0) + amount
-    }).catch(async (e) => {
+    };
+    if (nextDueDate) {
+      updates.dueDate = nextDueDate;
+    }
+
+    updateDoc(loanRef, updates).catch(async (e) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: loanRef.path,
         operation: 'update',
-        requestResourceData: { paidAmount: (loan.paidAmount || 0) + amount },
+        requestResourceData: updates,
       }));
     });
 
@@ -198,7 +216,7 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   return (
     <TransactionContext.Provider value={{ 
       transactions, loans, settings, addTransaction, deleteTransaction, 
-      addLoan, updateLoanPayment, deleteLoan, updateSettings, isLoading 
+      addLoan, updateLoan, updateLoanPayment, deleteLoan, updateSettings, isLoading 
     }}>
       {children}
     </TransactionContext.Provider>

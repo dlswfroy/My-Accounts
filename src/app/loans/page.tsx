@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -5,16 +6,17 @@ import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, HandCoins, CheckCircle2, History, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, HandCoins, CheckCircle2, History, Calendar as CalendarIcon, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { bn } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
 
 export default function LoansPage() {
-  const { loans, settings, addLoan, updateLoanPayment, deleteLoan } = useTransactions();
+  const { loans, settings, addLoan, updateLoan, updateLoanPayment, deleteLoan } = useTransactions();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   
   const [loanForm, setLoanForm] = useState({
@@ -25,7 +27,10 @@ export default function LoansPage() {
     note: ''
   });
 
-  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    nextDueDate: ''
+  });
 
   const handleAddLoan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,12 +54,33 @@ export default function LoansPage() {
     setIsAddDialogOpen(false);
   };
 
+  const handleEditLoan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLoanId || !loanForm.personName || !loanForm.totalAmount) return;
+
+    updateLoan(selectedLoanId, {
+      personName: loanForm.personName,
+      totalAmount: parseFloat(loanForm.totalAmount),
+      date: loanForm.date,
+      dueDate: loanForm.dueDate || undefined,
+      note: loanForm.note
+    });
+
+    setIsEditDialogOpen(false);
+    setSelectedLoanId(null);
+  };
+
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedLoanId || !paymentAmount) return;
+    if (!selectedLoanId || !paymentForm.amount) return;
 
-    updateLoanPayment(selectedLoanId, parseFloat(paymentAmount));
-    setPaymentAmount('');
+    updateLoanPayment(
+      selectedLoanId, 
+      parseFloat(paymentForm.amount), 
+      paymentForm.nextDueDate || undefined
+    );
+    
+    setPaymentForm({ amount: '', nextDueDate: '' });
     setIsPayDialogOpen(false);
     setSelectedLoanId(null);
   };
@@ -125,7 +151,7 @@ export default function LoansPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="note">নোট (অপশনাল)</Label>
+                <Label htmlFor="note">নোট (অপショナル)</Label>
                 <Input 
                   id="note" 
                   placeholder="অতিরিক্ত তথ্য" 
@@ -201,6 +227,7 @@ export default function LoansPage() {
                   className="flex-1 text-xs h-8"
                   onClick={() => {
                     setSelectedLoanId(loan.id);
+                    setPaymentForm({ amount: '', nextDueDate: loan.dueDate || '' });
                     setIsPayDialogOpen(true);
                   }}
                   disabled={loan.paidAmount >= loan.totalAmount}
@@ -208,14 +235,34 @@ export default function LoansPage() {
                   <History className="w-3 h-3 mr-1" />
                   পরিশোধ করুন
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                  onClick={() => deleteLoan(loan.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                    onClick={() => {
+                      setSelectedLoanId(loan.id);
+                      setLoanForm({
+                        personName: loan.personName,
+                        totalAmount: loan.totalAmount.toString(),
+                        date: loan.date,
+                        dueDate: loan.dueDate || '',
+                        note: loan.note
+                      });
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => deleteLoan(loan.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               {loan.paidAmount >= loan.totalAmount && (
@@ -232,6 +279,7 @@ export default function LoansPage() {
         )}
       </div>
 
+      {/* Payment Dialog */}
       <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
         <DialogContent className="max-w-[90vw] rounded-2xl">
           <DialogHeader>
@@ -247,14 +295,89 @@ export default function LoansPage() {
                   type="number" 
                   placeholder="0.00" 
                   className="pl-8" 
-                  value={paymentAmount}
-                  onChange={e => setPaymentAmount(e.target.value)}
+                  value={paymentForm.amount}
+                  onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})}
                   required
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="nextDueDate">পরবর্তী পরিশোধের তারিখ (ঐচ্ছিক)</Label>
+              <Input 
+                id="nextDueDate" 
+                type="date" 
+                value={paymentForm.nextDueDate}
+                onChange={e => setPaymentForm({...paymentForm, nextDueDate: e.target.value})}
+              />
+              <p className="text-[10px] text-muted-foreground italic">আংশিক পরিশোধের পর নতুন তারিখ সেট করতে পারেন।</p>
+            </div>
             <DialogFooter>
               <Button type="submit" className="w-full bg-primary mt-2">পরিশোধ নিশ্চিত করুন</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-[90vw] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-headline">ঋণের তথ্য পরিবর্তন</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditLoan} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="editPersonName">ব্যক্তির নাম</Label>
+              <Input 
+                id="editPersonName" 
+                value={loanForm.personName}
+                onChange={e => setLoanForm({...loanForm, personName: e.target.value})}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editTotalAmount">ঋণের পরিমাণ</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{settings.currency}</span>
+                <Input 
+                  id="editTotalAmount" 
+                  type="number" 
+                  value={loanForm.totalAmount}
+                  onChange={e => setLoanForm({...loanForm, totalAmount: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="editDate">গ্রহণের তারিখ</Label>
+                <Input 
+                  id="editDate" 
+                  type="date" 
+                  value={loanForm.date}
+                  onChange={e => setLoanForm({...loanForm, date: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editDueDate">পরিশোধের তারিখ</Label>
+                <Input 
+                  id="editDueDate" 
+                  type="date" 
+                  value={loanForm.dueDate}
+                  onChange={e => setLoanForm({...loanForm, dueDate: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editNote">নোট</Label>
+              <Input 
+                id="editNote" 
+                value={loanForm.note}
+                onChange={e => setLoanForm({...loanForm, note: e.target.value})}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" className="w-full bg-primary mt-2">আপডেট করুন</Button>
             </DialogFooter>
           </form>
         </DialogContent>
