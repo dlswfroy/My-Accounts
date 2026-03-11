@@ -60,7 +60,7 @@ const prompt = ai.definePrompt({
   output: {schema: MonthlyFinancialSummaryOutputSchema},
   prompt: `You are an expert financial analyst. Your task is to provide a concise and insightful natural language summary of the user's financial activity for the period described.
 
-Analyze the provided income and expense records for "{{{periodDescription}}}}".
+Analyze the provided income and expense records for "{{{periodDescription}}}".
 Calculate the total income, total expenses, and the net balance.
 Identify key spending patterns, significant income sources, and any notable trends or anomalies.
 Provide actionable insights based on these patterns.
