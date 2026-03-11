@@ -11,6 +11,16 @@ export interface Transaction {
   createdAt: number;
 }
 
+export interface Loan {
+  id: string;
+  personName: string;
+  totalAmount: number;
+  paidAmount: number;
+  date: string;
+  note: string;
+  createdAt: number;
+}
+
 export interface UserSettings {
   userName: string;
   currency: string;

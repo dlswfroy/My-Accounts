@@ -1,13 +1,17 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Transaction, UserSettings } from '@/lib/types';
+import { Transaction, UserSettings, Loan } from '@/lib/types';
 
 interface TransactionContextType {
   transactions: Transaction[];
+  loans: Loan[];
   settings: UserSettings;
   addTransaction: (tx: Omit<Transaction, 'id' | 'createdAt'>) => void;
   deleteTransaction: (id: string) => void;
+  addLoan: (loan: Omit<Loan, 'id' | 'createdAt' | 'paidAmount'>) => void;
+  updateLoanPayment: (loanId: string, amount: number) => void;
+  deleteLoan: (id: string) => void;
   updateSettings: (settings: Partial<UserSettings>) => void;
   isLoading: boolean;
 }
@@ -26,27 +30,23 @@ const TransactionContext = createContext<TransactionContextType | undefined>(und
 
 export function TransactionProvider({ children }: { children: React.ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedTx = localStorage.getItem('my_accounts_transactions');
+    const savedLoans = localStorage.getItem('my_accounts_loans');
     const savedSettings = localStorage.getItem('my_accounts_settings');
 
     if (savedTx) {
-      try {
-        setTransactions(JSON.parse(savedTx));
-      } catch (e) {
-        console.error("Failed to parse transactions", e);
-      }
+      try { setTransactions(JSON.parse(savedTx)); } catch (e) { console.error(e); }
     }
-    
+    if (savedLoans) {
+      try { setLoans(JSON.parse(savedLoans)); } catch (e) { console.error(e); }
+    }
     if (savedSettings) {
-      try {
-        setSettings(JSON.parse(savedSettings));
-      } catch (e) {
-        console.error("Failed to parse settings", e);
-      }
+      try { setSettings(JSON.parse(savedSettings)); } catch (e) { console.error(e); }
     }
     
     setIsLoading(false);
@@ -55,14 +55,10 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem('my_accounts_transactions', JSON.stringify(transactions));
-    }
-  }, [transactions, isLoading]);
-
-  useEffect(() => {
-    if (!isLoading) {
+      localStorage.setItem('my_accounts_loans', JSON.stringify(loans));
       localStorage.setItem('my_accounts_settings', JSON.stringify(settings));
     }
-  }, [settings, isLoading]);
+  }, [transactions, loans, settings, isLoading]);
 
   const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt'>) => {
     const newTx: Transaction = {
@@ -77,12 +73,47 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     setTransactions(prev => prev.filter(t => t.id !== id));
   };
 
+  const addLoan = (loan: Omit<Loan, 'id' | 'createdAt' | 'paidAmount'>) => {
+    const newLoan: Loan = {
+      ...loan,
+      id: crypto.randomUUID(),
+      paidAmount: 0,
+      createdAt: Date.now(),
+    };
+    setLoans(prev => [newLoan, ...prev]);
+  };
+
+  const updateLoanPayment = (loanId: string, amount: number) => {
+    setLoans(prev => prev.map(l => 
+      l.id === loanId ? { ...l, paidAmount: l.paidAmount + amount } : l
+    ));
+    // Also record this as an expense
+    const loan = loans.find(l => l.id === loanId);
+    if (loan) {
+      addTransaction({
+        type: 'expense',
+        amount: amount,
+        category: 'ঋণ পরিশোধ',
+        purpose: `${loan.personName}-কে ঋণ পরিশোধ`,
+        date: new Date().toISOString().split('T')[0],
+        source: ''
+      });
+    }
+  };
+
+  const deleteLoan = (id: string) => {
+    setLoans(prev => prev.filter(l => l.id !== id));
+  };
+
   const updateSettings = (newSettings: Partial<UserSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
   return (
-    <TransactionContext.Provider value={{ transactions, settings, addTransaction, deleteTransaction, updateSettings, isLoading }}>
+    <TransactionContext.Provider value={{ 
+      transactions, loans, settings, addTransaction, deleteTransaction, 
+      addLoan, updateLoanPayment, deleteLoan, updateSettings, isLoading 
+    }}>
       {children}
     </TransactionContext.Provider>
   );
