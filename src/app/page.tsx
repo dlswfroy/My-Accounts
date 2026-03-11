@@ -1,18 +1,16 @@
+
 "use client"
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Wallet, ArrowUpCircle, ArrowDownCircle, Sparkles, Loader2 } from 'lucide-react';
-import { spendingInsightTips } from '@/ai/flows/spending-insight-tips';
+import { Wallet, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { bn } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const { transactions, settings, isLoading } = useTransactions();
-  const [insights, setInsights] = useState<string[]>([]);
-  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
   if (isLoading) return null;
 
@@ -25,23 +23,6 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIncome - totalExpenses;
-
-  const handleGenerateInsights = async () => {
-    if (transactions.length === 0) return;
-    setIsGeneratingInsights(true);
-    try {
-      const summaryText = transactions.map(t => 
-        `${t.date}: ${t.type === 'income' ? 'আয়' : 'ব্যয়'} - ${t.amount} ${settings.currency} (${t.category}: ${t.purpose || t.source})`
-      ).join('\n');
-      
-      const res = await spendingInsightTips(summaryText);
-      setInsights(res);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsGeneratingInsights(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -86,41 +67,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-accent" />
-            AI আর্থিক পরামর্শ
-          </h2>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-accent hover:text-accent/80 hover:bg-accent/10"
-            onClick={handleGenerateInsights}
-            disabled={isGeneratingInsights || transactions.length === 0}
-          >
-            {isGeneratingInsights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-            টিপস দেখুন
-          </Button>
-        </div>
-        
-        {insights.length > 0 ? (
-          <div className="space-y-3">
-            {insights.map((tip, idx) => (
-              <div key={idx} className="bg-accent/5 border-l-4 border-accent p-4 rounded-r-lg shadow-sm">
-                <p className="text-sm text-foreground/90">{tip}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Card className="border-dashed bg-transparent">
-            <CardContent className="p-8 text-center text-muted-foreground">
-              {transactions.length > 0 ? "আপনার লেনদেনের উপর ভিত্তি করে AI পরামর্শ পেতে বাটনটি চাপুন।" : "কোন লেনদেন নেই। পরামর্শ পেতে আগে লেনদেন যুক্ত করুন।"}
-            </CardContent>
-          </Card>
-        )}
-      </section>
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-muted-foreground">সাম্প্রতিক লেনদেন</h2>
