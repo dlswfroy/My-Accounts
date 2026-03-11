@@ -75,8 +75,13 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   const { data: remoteSettings, loading: settingsLoading } = useDoc<UserSettings>(settingsDocRef);
 
   const settings = useMemo(() => {
-    return { ...defaultSettings, ...remoteSettings };
-  }, [remoteSettings]);
+    return { 
+      ...defaultSettings, 
+      ...remoteSettings,
+      email: user?.email || remoteSettings?.email || '',
+      userName: user?.displayName || remoteSettings?.userName || defaultSettings.userName
+    };
+  }, [remoteSettings, user]);
 
   const isLoading = userLoading || txLoading || loanLoading || settingsLoading;
 
