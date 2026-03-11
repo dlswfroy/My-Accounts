@@ -1,7 +1,27 @@
+
 "use client"
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { Transaction, UserSettings, Loan } from '@/lib/types';
+import { 
+  useCollection, 
+  useDoc, 
+  useUser, 
+  useFirestore, 
+  errorEmitter 
+} from '@/firebase';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  addDoc, 
+  deleteDoc, 
+  updateDoc, 
+  query, 
+  orderBy,
+  Firestore 
+} from 'firebase/firestore';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface TransactionContextType {
   transactions: Transaction[];
@@ -31,86 +51,122 @@ const defaultSettings: UserSettings = {
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
 
 export function TransactionProvider({ children }: { children: React.ReactNode }) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading: userLoading } = useUser();
+  const db = useFirestore();
 
-  useEffect(() => {
-    const savedTx = localStorage.getItem('my_accounts_transactions');
-    const savedLoans = localStorage.getItem('my_accounts_loans');
-    const savedSettings = localStorage.getItem('my_accounts_settings');
+  // Firestore Collections & Docs
+  const transactionsQuery = useMemo(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'users', user.uid, 'transactions'), orderBy('createdAt', 'desc'));
+  }, [db, user]);
 
-    if (savedTx) {
-      try { setTransactions(JSON.parse(savedTx)); } catch (e) { console.error(e); }
-    }
-    if (savedLoans) {
-      try { setLoans(JSON.parse(savedLoans)); } catch (e) { console.error(e); }
-    }
-    if (savedSettings) {
-      try { 
-        const parsed = JSON.parse(savedSettings);
-        setSettings({ ...defaultSettings, ...parsed }); 
-      } catch (e) { console.error(e); }
-    }
-    
-    setIsLoading(false);
-  }, []);
+  const loansQuery = useMemo(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'users', user.uid, 'loans'), orderBy('createdAt', 'desc'));
+  }, [db, user]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('my_accounts_transactions', JSON.stringify(transactions));
-      localStorage.setItem('my_accounts_loans', JSON.stringify(loans));
-      localStorage.setItem('my_accounts_settings', JSON.stringify(settings));
-    }
-  }, [transactions, loans, settings, isLoading]);
+  const settingsDocRef = useMemo(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid, 'settings', 'profile');
+  }, [db, user]);
+
+  const { data: transactions = [], loading: txLoading } = useCollection<Transaction>(transactionsQuery);
+  const { data: loans = [], loading: loanLoading } = useCollection<Loan>(loansQuery);
+  const { data: remoteSettings, loading: settingsLoading } = useDoc<UserSettings>(settingsDocRef);
+
+  const settings = useMemo(() => {
+    return { ...defaultSettings, ...remoteSettings };
+  }, [remoteSettings]);
+
+  const isLoading = userLoading || txLoading || loanLoading || settingsLoading;
 
   const addTransaction = (tx: Omit<Transaction, 'id' | 'createdAt'>) => {
-    const newTx: Transaction = {
-      ...tx,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
-    };
-    setTransactions(prev => [newTx, ...prev]);
+    if (!db || !user) return;
+    const colRef = collection(db, 'users', user.uid, 'transactions');
+    const newTx = { ...tx, createdAt: Date.now() };
+    
+    addDoc(colRef, newTx).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: colRef.path,
+        operation: 'create',
+        requestResourceData: newTx,
+      }));
+    });
   };
 
   const deleteTransaction = (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
+    if (!db || !user) return;
+    const docRef = doc(db, 'users', user.uid, 'transactions', id);
+    deleteDoc(docRef).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete',
+      }));
+    });
   };
 
   const addLoan = (loan: Omit<Loan, 'id' | 'createdAt' | 'paidAmount'>) => {
-    const newLoan: Loan = {
-      ...loan,
-      id: crypto.randomUUID(),
-      paidAmount: 0,
-      createdAt: Date.now(),
-    };
-    setLoans(prev => [newLoan, ...prev]);
+    if (!db || !user) return;
+    const colRef = collection(db, 'users', user.uid, 'loans');
+    const newLoan = { ...loan, paidAmount: 0, createdAt: Date.now() };
+    
+    addDoc(colRef, newLoan).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: colRef.path,
+        operation: 'create',
+        requestResourceData: newLoan,
+      }));
+    });
   };
 
   const updateLoanPayment = (loanId: string, amount: number) => {
-    setLoans(prev => prev.map(l => 
-      l.id === loanId ? { ...l, paidAmount: l.paidAmount + amount } : l
-    ));
+    if (!db || !user) return;
     const loan = loans.find(l => l.id === loanId);
-    if (loan) {
-      addTransaction({
-        type: 'expense',
-        amount: amount,
-        category: 'ঋণ পরিশোধ',
-        purpose: `${loan.personName}-কে ঋণ পরিশোধ`,
-        date: new Date().toISOString().split('T')[0],
-        source: ''
-      });
-    }
+    if (!loan) return;
+
+    const loanRef = doc(db, 'users', user.uid, 'loans', loanId);
+    updateDoc(loanRef, {
+      paidAmount: loan.paidAmount + amount
+    }).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: loanRef.path,
+        operation: 'update',
+        requestResourceData: { paidAmount: loan.paidAmount + amount },
+      }));
+    });
+
+    // Also add an expense transaction
+    addTransaction({
+      type: 'expense',
+      amount: amount,
+      category: 'ঋণ পরিশোধ',
+      purpose: `${loan.personName}-কে ঋণ পরিশোধ`,
+      date: new Date().toISOString().split('T')[0],
+      source: ''
+    });
   };
 
   const deleteLoan = (id: string) => {
-    setLoans(prev => prev.filter(l => l.id !== id));
+    if (!db || !user) return;
+    const docRef = doc(db, 'users', user.uid, 'loans', id);
+    deleteDoc(docRef).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete',
+      }));
+    });
   };
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+    if (!db || !user || !settingsDocRef) return;
+    const updated = { ...settings, ...newSettings };
+    setDoc(settingsDocRef, updated, { merge: true }).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: settingsDocRef.path,
+        operation: 'update',
+        requestResourceData: updated,
+      }));
+    });
   };
 
   return (

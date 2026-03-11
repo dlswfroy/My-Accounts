@@ -1,0 +1,65 @@
+
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A record of income or expense.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "category": { "type": "string" },
+        "purpose": { "type": "string" },
+        "source": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["type", "amount", "date", "category", "createdAt"]
+    },
+    "Loan": {
+      "title": "Loan",
+      "description": "A record of money borrowed or lent.",
+      "type": "object",
+      "properties": {
+        "personName": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "note": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["personName", "totalAmount", "paidAmount", "date", "createdAt"]
+    },
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "User profile and app preferences.",
+      "type": "object",
+      "properties": {
+        "userName": { "type": "string" },
+        "email": { "type": "string" },
+        "mobile": { "type": "string" },
+        "currency": { "type": "string" },
+        "incomeCategories": { "type": "array", "items": { "type": "string" } },
+        "expenseCategories": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "#/entities/Transaction",
+      "description": "User's financial transactions."
+    },
+    "/users/{userId}/loans/{loanId}": {
+      "schema": "#/entities/Loan",
+      "description": "User's loan records."
+    },
+    "/users/{userId}/settings/profile": {
+      "schema": "#/entities/UserSettings",
+      "description": "User's profile settings."
+    }
+  }
+}
