@@ -1,25 +1,41 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, CreditCard, Tag, Plus, X, ShieldAlert } from 'lucide-react';
+import { User, Tag, Plus, X, ShieldAlert, Mail, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
   const { settings, updateSettings, isLoading } = useTransactions();
   const { toast } = useToast();
-  const [userName, setUserName] = useState(settings.userName);
+  
+  const [profile, setProfile] = useState({
+    userName: '',
+    email: '',
+    mobile: ''
+  });
+
+  useEffect(() => {
+    if (!isLoading) {
+      setProfile({
+        userName: settings.userName,
+        email: settings.email || '',
+        mobile: settings.mobile || ''
+      });
+    }
+  }, [settings, isLoading]);
+
   const [newCat, setNewCat] = useState({ income: '', expense: '' });
 
   if (isLoading) return null;
 
-  const handleSaveName = () => {
-    updateSettings({ userName });
-    toast({ title: 'সফল হয়েছে!', description: 'ব্যবহারকারীর নাম পরিবর্তন করা হয়েছে।' });
+  const handleSaveProfile = () => {
+    updateSettings(profile);
+    toast({ title: 'সফল হয়েছে!', description: 'প্রোফাইল তথ্য আপডেট করা হয়েছে।' });
   };
 
   const handleAddCategory = (type: 'income' | 'expense') => {
@@ -48,6 +64,7 @@ export default function Settings() {
   const handleClearAll = () => {
     if (confirm('আপনি কি নিশ্চিত যে আপনি সব তথ্য মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা সম্ভব নয়।')) {
       localStorage.removeItem('my_accounts_transactions');
+      localStorage.removeItem('my_accounts_loans');
       localStorage.removeItem('my_accounts_settings');
       window.location.reload();
     }
@@ -67,12 +84,31 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>আপনার নাম</Label>
-            <div className="flex gap-2">
-              <Input value={userName} onChange={e => setUserName(e.target.value)} />
-              <Button onClick={handleSaveName} className="bg-primary hover:bg-primary/90">সংরক্ষণ</Button>
-            </div>
+            <Label className="flex items-center gap-2"><User className="w-4 h-4" /> আপনার নাম</Label>
+            <Input 
+              value={profile.userName} 
+              onChange={e => setProfile({...profile, userName: e.target.value})} 
+            />
           </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Mail className="w-4 h-4" /> ইমেইল</Label>
+            <Input 
+              type="email"
+              value={profile.email} 
+              onChange={e => setProfile({...profile, email: e.target.value})} 
+              placeholder="example@mail.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Phone className="w-4 h-4" /> মোবাইল নম্বর</Label>
+            <Input 
+              type="tel"
+              value={profile.mobile} 
+              onChange={e => setProfile({...profile, mobile: e.target.value})} 
+              placeholder="017XXXXXXXX"
+            />
+          </div>
+          <Button onClick={handleSaveProfile} className="w-full bg-primary hover:bg-primary/90 mt-2">সংরক্ষণ করুন</Button>
         </CardContent>
       </Card>
 

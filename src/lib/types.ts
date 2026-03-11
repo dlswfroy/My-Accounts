@@ -17,12 +17,15 @@ export interface Loan {
   totalAmount: number;
   paidAmount: number;
   date: string;
+  dueDate?: string;
   note: string;
   createdAt: number;
 }
 
 export interface UserSettings {
   userName: string;
+  email: string;
+  mobile: string;
   currency: string;
   incomeCategories: string[];
   expenseCategories: string[];

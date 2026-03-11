@@ -5,7 +5,7 @@ import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, HandCoins, CheckCircle2, History } from 'lucide-react';
+import { Plus, Trash2, HandCoins, CheckCircle2, History, Calendar as CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { bn } from 'date-fns/locale';
@@ -21,6 +21,7 @@ export default function LoansPage() {
     personName: '',
     totalAmount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
+    dueDate: '',
     note: ''
   });
 
@@ -34,6 +35,7 @@ export default function LoansPage() {
       personName: loanForm.personName,
       totalAmount: parseFloat(loanForm.totalAmount),
       date: loanForm.date,
+      dueDate: loanForm.dueDate || undefined,
       note: loanForm.note
     });
 
@@ -41,6 +43,7 @@ export default function LoansPage() {
       personName: '',
       totalAmount: '',
       date: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: '',
       note: ''
     });
     setIsAddDialogOpen(false);
@@ -100,15 +103,26 @@ export default function LoansPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="date">তারিখ</Label>
-                <Input 
-                  id="date" 
-                  type="date" 
-                  value={loanForm.date}
-                  onChange={e => setLoanForm({...loanForm, date: e.target.value})}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">গ্রহণের তারিখ</Label>
+                  <Input 
+                    id="date" 
+                    type="date" 
+                    value={loanForm.date}
+                    onChange={e => setLoanForm({...loanForm, date: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">পরিশোধের তারিখ</Label>
+                  <Input 
+                    id="dueDate" 
+                    type="date" 
+                    value={loanForm.dueDate}
+                    onChange={e => setLoanForm({...loanForm, dueDate: e.target.value})}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="note">নোট (অপশনাল)</Label>
@@ -155,9 +169,16 @@ export default function LoansPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-bold text-lg">{loan.personName}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(loan.date), 'dd MMMM, yyyy', { locale: bn })}
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <CalendarIcon className="w-3 h-3" /> গ্রহণ: {format(new Date(loan.date), 'dd MMM, yyyy', { locale: bn })}
+                    </p>
+                    {loan.dueDate && (
+                      <p className="text-[10px] text-primary font-medium flex items-center gap-1">
+                        <CalendarIcon className="w-3 h-3" /> পরিশোধের সম্ভাব্য তারিখ: {format(new Date(loan.dueDate), 'dd MMM, yyyy', { locale: bn })}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-primary">{settings.currency}{(loan.totalAmount - loan.paidAmount).toLocaleString()}</p>

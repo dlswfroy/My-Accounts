@@ -21,6 +21,8 @@ const defaultExpenseCategories = ['খাবার', 'পরিবহন', 'ব�
 
 const defaultSettings: UserSettings = {
   userName: 'ব্যবহারকারী',
+  email: '',
+  mobile: '',
   currency: '৳',
   incomeCategories: defaultIncomeCategories,
   expenseCategories: defaultExpenseCategories,
@@ -46,7 +48,10 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
       try { setLoans(JSON.parse(savedLoans)); } catch (e) { console.error(e); }
     }
     if (savedSettings) {
-      try { setSettings(JSON.parse(savedSettings)); } catch (e) { console.error(e); }
+      try { 
+        const parsed = JSON.parse(savedSettings);
+        setSettings({ ...defaultSettings, ...parsed }); 
+      } catch (e) { console.error(e); }
     }
     
     setIsLoading(false);
@@ -87,7 +92,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     setLoans(prev => prev.map(l => 
       l.id === loanId ? { ...l, paidAmount: l.paidAmount + amount } : l
     ));
-    // Also record this as an expense
     const loan = loans.find(l => l.id === loanId);
     if (loan) {
       addTransaction({
