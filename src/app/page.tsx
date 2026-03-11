@@ -21,20 +21,22 @@ export default function Dashboard() {
     );
   }
 
-  const totalIncome = transactions
+  const totalIncomeTransactions = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpenses = transactions
+  const totalExpenseTransactions = transactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
+  const totalLoanTaken = loans.reduce((sum, l) => sum + l.totalAmount, 0);
   const currentDebt = loans.reduce((sum, l) => sum + (l.totalAmount - l.paidAmount), 0);
   
-  // নগদ জমা = আয় - ব্যয় (ইতোমধ্যে পরিশোধিত ঋণ ব্যয়ের মধ্যে অন্তর্ভুক্ত)
-  const cashBalance = totalIncome - totalExpenses;
+  // নগদ জমা = (আয় + গৃহীত ঋণ) - ব্যয়
+  const cashBalance = (totalIncomeTransactions + totalLoanTaken) - totalExpenseTransactions;
   
   // নিট অবশিষ্ট = নগদ জমা - বকেয়া ঋণ (সব ঋণ শোধ করলে যা থাকবে)
+  // এটি মূলত: মোট আয় - প্রকৃত ব্যয় (ঋণ বাদে) এর সমান
   const netBalance = cashBalance - currentDebt;
 
   // ১৫ দিনের মধ্যে পরিশোধের তারিখ আছে এমন ঋণের তালিকা
@@ -79,7 +81,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-2 mt-2 opacity-80">
                 <Info className="w-3 h-3" />
                 <p className="text-[10px] font-medium">
-                  আপনার হাতে আছে {settings.currency}{cashBalance.toLocaleString()} এবং বকেয়া ঋণ {settings.currency}{currentDebt.toLocaleString()}
+                  আপনার হাতে নগদ আছে {settings.currency}{cashBalance.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -119,7 +121,7 @@ export default function Dashboard() {
             <div className="text-lg font-bold text-green-600">
               {settings.currency}{cashBalance.toLocaleString()}
             </div>
-            <p className="text-[9px] text-muted-foreground mt-1">আয় - ব্যয়</p>
+            <p className="text-[9px] text-muted-foreground mt-1">আয় - ব্যয় + ঋণ</p>
           </CardContent>
         </Card>
         

@@ -12,11 +12,11 @@ export default function Reports() {
 
   if (isLoading) return null;
 
-  const totalIncome = transactions
+  const totalIncomeTrans = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpenses = transactions
+  const totalExpenseTrans = transactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -25,7 +25,10 @@ export default function Reports() {
   const totalLoanPaid = loans.reduce((sum, l) => sum + l.paidAmount, 0);
   const currentDebt = totalLoanTaken - totalLoanPaid;
 
-  const cashBalance = totalIncome - totalExpenses;
+  // নগদ জমা = (আয় + ঋণ গ্রহণ) - ব্যয়
+  const cashBalance = (totalIncomeTrans + totalLoanTaken) - totalExpenseTrans;
+  
+  // নিট অবশিষ্ট = নগদ জমা - বকেয়া ঋণ
   const netBalance = cashBalance - currentDebt;
 
   const expenseByCategory = transactions
@@ -58,13 +61,13 @@ export default function Reports() {
               <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center justify-center gap-1">
                 <TrendingUp className="w-3 h-3 text-green-600" /> আয়
               </p>
-              <p className="text-lg font-bold text-green-600">{settings.currency}{totalIncome.toLocaleString()}</p>
+              <p className="text-lg font-bold text-green-600">{settings.currency}{totalIncomeTrans.toLocaleString()}</p>
             </div>
             <div className="flex-1 p-4 text-center">
               <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center justify-center gap-1">
                 <TrendingDown className="w-3 h-3 text-primary" /> ব্যয়
               </p>
-              <p className="text-lg font-bold text-primary">{settings.currency}{totalExpenses.toLocaleString()}</p>
+              <p className="text-lg font-bold text-primary">{settings.currency}{totalExpenseTrans.toLocaleString()}</p>
             </div>
             <div className="flex-1 p-4 text-center">
               <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center justify-center gap-1">
@@ -89,7 +92,7 @@ export default function Reports() {
             </div>
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground uppercase">সংগৃহীত ঋণ</p>
+                <p className="text-[10px] text-muted-foreground uppercase">গৃহীত ঋণ</p>
                 <p className="text-sm font-semibold">{settings.currency}{totalLoanTaken.toLocaleString()}</p>
               </div>
               <div className="space-y-1">
@@ -119,7 +122,7 @@ export default function Reports() {
                     <span className="font-medium">{category}</span>
                     <span className="text-muted-foreground">{settings.currency}{amount.toLocaleString()}</span>
                   </div>
-                  <Progress value={(amount / totalExpenses) * 100} className="h-2" />
+                  <Progress value={(amount / totalExpenseTrans) * 100} className="h-2" />
                 </div>
               ))
             ) : (

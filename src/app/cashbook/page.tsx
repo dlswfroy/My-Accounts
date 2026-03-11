@@ -61,19 +61,22 @@ export default function CashbookPage() {
   }, [selectedSector, transactions, loans]);
 
   const summary = useMemo(() => {
-    const income = filteredData.transactions
+    const incomeTrans = filteredData.transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
     
-    const expense = filteredData.transactions
+    const expenseTrans = filteredData.transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const debt = filteredData.loans.reduce((sum, l) => sum + (l.totalAmount - l.paidAmount), 0);
-    const totalTaken = filteredData.loans.reduce((sum, l) => sum + l.totalAmount, 0);
-    const totalPaid = filteredData.loans.reduce((sum, l) => sum + l.paidAmount, 0);
+    const totalLoanTaken = filteredData.loans.reduce((sum, l) => sum + l.totalAmount, 0);
+    const totalLoanPaid = filteredData.loans.reduce((sum, l) => sum + l.paidAmount, 0);
+    const currentDebt = totalLoanTaken - totalLoanPaid;
 
-    return { income, expense, debt, totalTaken, totalPaid };
+    // নগদ জমা = (আয় + গৃহীত ঋণ) - ব্যয়
+    const cashInHand = (incomeTrans + totalLoanTaken) - expenseTrans;
+
+    return { incomeTrans, expenseTrans, currentDebt, totalLoanTaken, totalLoanPaid, cashInHand };
   }, [filteredData]);
 
   if (isLoading) return null;
@@ -116,9 +119,9 @@ export default function CashbookPage() {
       <div className="grid grid-cols-2 gap-4">
         <Card className="bg-green-50 border-none shadow-sm">
           <CardContent className="p-4 space-y-1">
-            <p className="text-[10px] font-bold text-green-700 uppercase">মোট আয়</p>
+            <p className="text-[10px] font-bold text-green-700 uppercase">নগদ জমা</p>
             <p className="text-xl font-bold text-green-600">
-              {settings.currency}{summary.income.toLocaleString()}
+              {settings.currency}{summary.cashInHand.toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -126,17 +129,17 @@ export default function CashbookPage() {
           <CardContent className="p-4 space-y-1">
             <p className="text-[10px] font-bold text-primary uppercase">মোট ব্যয়</p>
             <p className="text-xl font-bold text-primary">
-              {settings.currency}{summary.expense.toLocaleString()}
+              {settings.currency}{summary.expenseTrans.toLocaleString()}
             </p>
           </CardContent>
         </Card>
-        {summary.totalTaken > 0 && (
+        {summary.totalLoanTaken > 0 && (
           <>
             <Card className="bg-amber-50 border-none shadow-sm">
               <CardContent className="p-4 space-y-1">
                 <p className="text-[10px] font-bold text-amber-700 uppercase">বকেয়া ঋণ</p>
                 <p className="text-xl font-bold text-amber-600">
-                  {settings.currency}{summary.debt.toLocaleString()}
+                  {settings.currency}{summary.currentDebt.toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -144,7 +147,7 @@ export default function CashbookPage() {
               <CardContent className="p-4 space-y-1">
                 <p className="text-[10px] font-bold text-blue-700 uppercase">পরিশোধিত</p>
                 <p className="text-xl font-bold text-blue-600">
-                  {settings.currency}{summary.totalPaid.toLocaleString()}
+                  {settings.currency}{summary.totalLoanPaid.toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -198,7 +201,7 @@ export default function CashbookPage() {
                         <HandCoins className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm">ঋণ: {l.personName}</p>
+                        <p className="font-bold text-sm">ঋণ গ্রহণ: {l.personName}</p>
                         <p className="text-[10px] text-muted-foreground">
                           গ্রহণের তারিখ: {format(new Date(l.date), 'dd MMMM, yyyy', { locale: bn })}
                         </p>
