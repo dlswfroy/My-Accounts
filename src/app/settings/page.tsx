@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Tag, Plus, X, ShieldAlert, Mail, Phone, ShieldCheck } from 'lucide-react';
+import { User, Tag, Plus, X, Mail, Phone, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
@@ -60,18 +59,6 @@ export default function Settings() {
       updateSettings({ incomeCategories: settings.incomeCategories.filter(c => c !== cat) });
     } else {
       updateSettings({ expenseCategories: settings.expenseCategories.filter(c => c !== cat) });
-    }
-  };
-
-  const handleClearAll = () => {
-    if (confirm('আপনি কি নিশ্চিত যে আপনি সব তথ্য মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা সম্ভব নয়।')) {
-      // In a Firebase app, we usually don't clear localStorage for reset, 
-      // but we might want to inform the user how to reset data.
-      toast({
-        variant: "destructive",
-        title: "অপারেশন সফল নয়",
-        description: "ক্লাউড ডেটা মুছতে এডমিন প্যানেল ব্যবহার করুন।"
-      });
     }
   };
 
@@ -183,21 +170,6 @@ export default function Settings() {
               <Plus className="w-4 h-4" />
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white border-none shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg text-destructive flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5" />
-            বিপদজনক এলাকা
-          </CardTitle>
-          <CardDescription>অ্যাপের তথ্য ব্যবস্থাপনা</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="destructive" className="w-full" onClick={handleClearAll}>
-            তথ্য মুছুন (Reset Data)
-          </Button>
         </CardContent>
       </Card>
     </div>
