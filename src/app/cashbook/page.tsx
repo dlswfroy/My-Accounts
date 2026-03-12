@@ -29,7 +29,6 @@ export default function CashbookPage() {
     if (selectedSector !== "all") {
       if (selectedSector.startsWith("ঋণ: ")) {
         const name = selectedSector.replace("ঋণ: ", "");
-        // Filter transactions related to this person (repayments or manual entries)
         txs = txs.filter(t => t.purpose?.includes(name) || t.source?.includes(name));
         lns = lns.filter(l => l.personName === name);
       } else {
@@ -50,23 +49,20 @@ export default function CashbookPage() {
   }, [selectedSector, searchQuery, transactions, loans]);
 
   const summary = useMemo(() => {
-    // Basic sums
     const incomeTrans = filteredData.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const expenseTrans = filteredData.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     
-    // Loan specific sums
     const totalTaken = filteredData.loans.reduce((sum, l) => sum + l.totalAmount, 0);
     const totalPaid = filteredData.loans.reduce((sum, l) => sum + l.paidAmount, 0);
     const remainingDebt = totalTaken - totalPaid;
 
-    // Global balance logic (only if "all" or specific logic)
-    // If a loan person is selected, we focus on that loan's stats
     return { 
       incomeTrans, 
       expenseTrans, 
       totalTaken,
       totalPaid,
       remainingDebt,
+      totalCategoryAmount: incomeTrans + expenseTrans,
       cashInHand: (incomeTrans + totalTaken) - expenseTrans 
     };
   }, [filteredData]);
@@ -74,6 +70,9 @@ export default function CashbookPage() {
   if (isLoading) return null;
 
   const isLoanSector = selectedSector.startsWith("ঋণ: ");
+  const isAllSelected = selectedSector === "all";
+  const isIncomeCategory = settings.incomeCategories.includes(selectedSector);
+  const isExpenseCategory = settings.expenseCategories.includes(selectedSector) || selectedSector === 'ঋণ পরিশোধ';
 
   return (
     <div className="space-y-6 pb-6 animate-in fade-in duration-500">
@@ -110,28 +109,7 @@ export default function CashbookPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4">
-        {!isLoanSector ? (
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">নগদ জমা</p>
-                <Wallet className="w-4 h-4 text-green-600" />
-              </div>
-              <p className="text-2xl font-black text-green-600 tracking-tighter">
-                {settings.currency}{summary.cashInHand.toLocaleString()}
-              </p>
-            </Card>
-            <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-[10px] font-black uppercase text-primary tracking-widest">মোট ব্যয়</p>
-                <ArrowDownCircle className="w-4 h-4 text-primary" />
-              </div>
-              <p className="text-2xl font-black text-primary tracking-tighter">
-                {settings.currency}{summary.expenseTrans.toLocaleString()}
-              </p>
-            </Card>
-          </div>
-        ) : (
+        {isLoanSector ? (
           <div className="space-y-4">
             <Card className="bg-primary p-6 rounded-[2.5rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-white/10">
                <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -158,6 +136,49 @@ export default function CashbookPage() {
               </Card>
             </div>
           </div>
+        ) : isAllSelected ? (
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">নগদ জমা</p>
+                <Wallet className="w-4 h-4 text-green-600" />
+              </div>
+              <p className="text-2xl font-black text-green-600 tracking-tighter">
+                {settings.currency}{summary.cashInHand.toLocaleString()}
+              </p>
+            </Card>
+            <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-[10px] font-black uppercase text-primary tracking-widest">মোট ব্যয়</p>
+                <ArrowDownCircle className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-2xl font-black text-primary tracking-tighter">
+                {settings.currency}{summary.expenseTrans.toLocaleString()}
+              </p>
+            </Card>
+          </div>
+        ) : (
+          <Card className="bg-white border-2 border-primary/5 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+            <div className="flex justify-between items-center mb-2">
+              <p className={cn(
+                "text-[10px] font-black uppercase tracking-widest",
+                isIncomeCategory ? "text-green-600" : "text-primary"
+              )}>
+                {isIncomeCategory ? "মোট জমা" : "মোট ব্যয়"}
+              </p>
+              {isIncomeCategory ? (
+                <ArrowUpCircle className="w-5 h-5 text-green-600 opacity-50" />
+              ) : (
+                <ArrowDownCircle className="w-5 h-5 text-primary opacity-50" />
+              )}
+            </div>
+            <p className={cn(
+              "text-4xl font-black tracking-tighter",
+              isIncomeCategory ? "text-green-600" : "text-primary"
+            )}>
+              {settings.currency}{summary.totalCategoryAmount.toLocaleString()}
+            </p>
+          </Card>
         )}
       </div>
 
