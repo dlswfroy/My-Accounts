@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowUpCircle, ArrowDownCircle, BookOpen, Search, Wallet, HandCoins, CheckCircle2 } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, BookOpen, Search, Wallet, HandCoins } from 'lucide-react';
 import { format } from 'date-fns';
 import { bn } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -77,25 +77,25 @@ export default function CashbookPage() {
   return (
     <div className="space-y-6 pb-6 animate-in fade-in duration-500">
       <div className="flex items-center gap-3">
-        <div className="bg-primary p-2.5 rounded-2xl text-primary-foreground shadow-lg shadow-primary/20">
+        <div className="bg-primary p-2 rounded-2xl text-primary-foreground shadow-lg">
           <BookOpen className="w-6 h-6" />
         </div>
-        <h1 className="text-2xl font-black font-headline text-primary uppercase tracking-tight">ক্যাশ বুক</h1>
+        <h1 className="text-2xl font-black text-primary uppercase tracking-tight">ক্যাশ বুক</h1>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="লেনদেন খুঁজুন..." 
-            className="pl-11 rounded-2xl h-12 border-2 border-primary/5 focus:border-primary/20 bg-white shadow-sm transition-all" 
+            className="pl-11 rounded-2xl h-11 border-2 border-primary/5 focus:border-primary/20 bg-white" 
             value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)} 
           />
         </div>
 
         <Select value={selectedSector} onValueChange={setSelectedSector}>
-          <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-primary/5 focus:ring-primary bg-white shadow-sm font-bold text-sm">
+          <SelectTrigger className="w-full h-11 rounded-2xl border-2 border-primary/5 bg-white font-bold text-sm">
             <SelectValue placeholder="খাত বেছে নিন" />
           </SelectTrigger>
           <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl">
@@ -111,26 +111,26 @@ export default function CashbookPage() {
       <div className="grid grid-cols-1 gap-4">
         {isLoanSector ? (
           <div className="space-y-4">
-            <Card className="bg-primary p-6 rounded-[2.5rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-white/10">
+            <Card className="bg-primary p-6 rounded-[2rem] text-primary-foreground shadow-xl relative overflow-hidden">
                <div className="absolute top-0 right-0 p-4 opacity-10">
-                <HandCoins className="w-20 h-20" />
+                <HandCoins className="w-16 h-16" />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">অবশিষ্ট বকেয়া ঋণ</p>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">বকেয়া ঋণ</p>
               <p className="text-4xl font-black tracking-tighter">
                 {settings.currency}{summary.remainingDebt.toLocaleString()}
               </p>
             </Card>
             
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl">
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">মোট ঋণ</p>
-                <p className="text-xl font-black text-foreground">
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="bg-white border-2 border-primary/5 p-4 rounded-2xl shadow-sm">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">মোট ঋণ</p>
+                <p className="text-lg font-black text-foreground">
                   {settings.currency}{summary.totalTaken.toLocaleString()}
                 </p>
               </Card>
-              <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl">
-                <p className="text-[10px] font-black uppercase text-green-600 tracking-widest mb-1">পরিশোধিত</p>
-                <p className="text-xl font-black text-green-600">
+              <Card className="bg-white border-2 border-primary/5 p-4 rounded-2xl shadow-sm">
+                <p className="text-[9px] font-black uppercase text-green-600 tracking-widest mb-1">পরিশোধিত</p>
+                <p className="text-lg font-black text-green-600">
                   {settings.currency}{summary.totalPaid.toLocaleString()}
                 </p>
               </Card>
@@ -138,7 +138,7 @@ export default function CashbookPage() {
           </div>
         ) : isAllSelected ? (
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
+            <Card className="bg-white border-2 border-primary/5 p-5 rounded-2xl shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">নগদ জমা</p>
                 <Wallet className="w-4 h-4 text-green-600" />
@@ -147,7 +147,7 @@ export default function CashbookPage() {
                 {settings.currency}{summary.cashInHand.toLocaleString()}
               </p>
             </Card>
-            <Card className="bg-white border-2 border-primary/5 p-5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
+            <Card className="bg-white border-2 border-primary/5 p-5 rounded-2xl shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <p className="text-[10px] font-black uppercase text-primary tracking-widest">মোট ব্যয়</p>
                 <ArrowDownCircle className="w-4 h-4 text-primary" />
@@ -158,7 +158,7 @@ export default function CashbookPage() {
             </Card>
           </div>
         ) : (
-          <Card className="bg-white border-2 border-primary/5 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+          <Card className="bg-white border-2 border-primary/5 p-6 rounded-[2rem] shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-center mb-2">
               <p className={cn(
                 "text-[10px] font-black uppercase tracking-widest",
@@ -185,25 +185,25 @@ export default function CashbookPage() {
       {/* Transaction List */}
       <section className="space-y-3">
         <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] px-1 flex items-center gap-2">
-          লেনদেন সমূহ {filteredData.transactions.length > 0 && <span className="w-5 h-5 bg-primary/10 text-primary rounded-full flex items-center justify-center text-[8px]">{filteredData.transactions.length}</span>}
+          লেনদেন সমূহ {filteredData.transactions.length > 0 && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[8px]">{filteredData.transactions.length}</span>}
         </h2>
         {filteredData.transactions.length === 0 ? (
-          <div className="text-center py-20 bg-muted/20 rounded-[2.5rem] text-muted-foreground font-bold text-[10px] uppercase italic tracking-widest border-2 border-dashed border-muted">তথ্য পাওয়া যায়নি</div>
+          <div className="text-center py-20 bg-muted/20 rounded-[2rem] text-muted-foreground font-bold text-[10px] uppercase italic tracking-widest border-2 border-dashed border-muted">তথ্য পাওয়া যায়নি</div>
         ) : (
           filteredData.transactions.map((t) => (
-            <div key={t.id} className="flex items-center justify-between p-4 bg-white rounded-[2rem] shadow-sm border-2 border-primary/5 hover:border-primary/10 transition-all">
-              <div className="flex items-center gap-4">
+            <div key={t.id} className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-sm border-2 border-primary/5">
+              <div className="flex items-center gap-3">
                 <div className={cn(
-                  "p-2.5 rounded-2xl shadow-sm", 
+                  "p-2 rounded-xl", 
                   t.type === 'income' ? "bg-green-50 text-green-600" : "bg-primary/5 text-primary"
                 )}>
                   {t.type === 'income' ? <ArrowUpCircle className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
                 </div>
                 <div>
                   <p className="font-black text-sm text-foreground">{t.category}</p>
-                  <p className="text-[9px] font-bold text-muted-foreground flex items-center gap-1">
+                  <p className="text-[9px] font-bold text-muted-foreground">
                     {format(new Date(t.date), 'dd MMM, yyyy', { locale: bn })}
-                    {t.purpose && <span className="opacity-50">| {t.purpose}</span>}
+                    {t.purpose && <span className="opacity-50"> | {t.purpose}</span>}
                   </p>
                 </div>
               </div>
