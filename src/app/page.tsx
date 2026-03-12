@@ -157,26 +157,26 @@ export default function Dashboard() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="space-y-6 pb-24 animate-in fade-in duration-500">
+    <div className="space-y-7 pb-24 animate-in fade-in duration-500">
       {/* Header with Clock and Date */}
       <section className="flex justify-between items-start px-1">
         <div>
-          <h2 className="text-xl font-black font-headline text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
-          <p className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider font-black border-2 border-primary/20 inline-block mt-1">
+          <h2 className="text-2xl font-black font-headline text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
+          <p className="text-[12px] bg-primary/10 text-primary px-4 py-1.5 rounded-full uppercase tracking-wider font-black border-2 border-primary/20 inline-block mt-1">
             {settings.userName}
           </p>
         </div>
         {currentTime && (
           <div className="text-right flex flex-col items-end gap-1">
             <div className="flex items-center gap-1.5 text-primary">
-              <Clock className="w-4 h-4" />
-              <span className="text-lg font-black tracking-tighter tabular-nums">
+              <Clock className="w-5 h-5" />
+              <span className="text-xl font-black tracking-tighter tabular-nums">
                 {format(currentTime, 'hh:mm:ss a')}
               </span>
             </div>
             <div className="flex items-center gap-1 text-muted-foreground">
-              <CalendarIcon className="w-3 h-3" />
-              <span className="text-[9px] font-bold uppercase tracking-widest">
+              <CalendarIcon className="w-4 h-4" />
+              <span className="text-[11px] font-bold uppercase tracking-widest">
                 {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: bn })}
               </span>
             </div>
@@ -185,25 +185,25 @@ export default function Dashboard() {
       </section>
 
       <section className="space-y-4">
-        <div className="bg-primary p-6 rounded-[2.5rem] text-primary-foreground shadow-2xl relative overflow-hidden group border-4 border-white/20">
+        <div className="bg-primary p-7 rounded-[2.5rem] text-primary-foreground shadow-2xl relative overflow-hidden group border-4 border-white/20">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-            <Wallet className="w-24 h-24" />
+            <Wallet className="w-28 h-28" />
           </div>
           <div className="space-y-5 relative z-10">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-xl border border-white/20 shadow-inner">
-                <Wallet className="w-6 h-6 stroke-[2.5px]" />
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-xl border border-white/20 shadow-inner">
+                <Wallet className="w-7 h-7 stroke-[2.5px]" />
               </div>
-              <p className="text-[11px] font-black opacity-90 tracking-widest uppercase">নিট অবশিষ্ট (ঋণ বাদে)</p>
+              <p className="text-[13px] font-black opacity-90 tracking-widest uppercase">নিট অবশিষ্ট (ঋণ বাদে)</p>
             </div>
             <div className="overflow-hidden">
-              <p className={cn("text-4xl sm:text-5xl font-black tracking-tighter flex items-baseline gap-1.5 leading-tight flex-wrap", netBalance < 0 && "text-white/90")}>
-                <span className="text-lg font-medium opacity-70">{settings.currency}</span>{netBalance.toLocaleString()}
+              <p className={cn("text-5xl sm:text-6xl font-black tracking-tighter flex items-baseline gap-2 leading-tight flex-wrap", netBalance < 0 && "text-white/90")}>
+                <span className="text-xl font-medium opacity-70">{settings.currency}</span>{netBalance.toLocaleString()}
               </p>
             </div>
-            <div className="flex items-center gap-2.5 mt-1 bg-black/20 w-fit px-4 py-2 rounded-xl border border-white/10 shadow-sm">
-              <Info className="w-4 h-4 text-white/70" />
-              <p className="text-[11px] font-black uppercase tracking-tight">নগদ জমা: {settings.currency}{cashBalance.toLocaleString()}</p>
+            <div className="flex items-center gap-3 mt-1 bg-black/20 w-fit px-5 py-2.5 rounded-xl border border-white/10 shadow-sm">
+              <Info className="w-5 h-5 text-white/70" />
+              <p className="text-[13px] font-black uppercase tracking-tight">নগদ জমা: {settings.currency}{cashBalance.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -216,14 +216,14 @@ export default function Dashboard() {
             onClick={toggleListening}
             disabled={isProcessingVoice}
             className={cn(
-              "w-20 h-20 rounded-full shadow-2xl transition-all duration-300 border-4 border-white",
+              "w-24 h-24 rounded-full shadow-2xl transition-all duration-300 border-4 border-white",
               isListening ? "bg-green-500 scale-110 animate-pulse" : "bg-primary scale-100",
               isProcessingVoice && "opacity-50"
             )}
           >
-            {isListening ? <MicOff className="w-8 h-8" /> : (isProcessingVoice ? <Loader2 className="w-8 h-8 animate-spin" /> : <Mic className="w-8 h-8" />)}
+            {isListening ? <MicOff className="w-10 h-10" /> : (isProcessingVoice ? <Loader2 className="w-10 h-10 animate-spin" /> : <Mic className="w-10 h-10" />)}
           </Button>
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-white px-3 py-1 rounded-full shadow-sm">
+          <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground bg-white px-4 py-1.5 rounded-full shadow-sm border border-muted">
             {isListening ? "বলুন..." : (isProcessingVoice ? "বুঝছি..." : "ভয়েস দিয়ে লিখুন")}
           </p>
         </div>
@@ -235,17 +235,17 @@ export default function Dashboard() {
           {upcomingLoanAlerts.map(loan => {
             const daysLeft = differenceInDays(new Date(loan.dueDate!), currentDate);
             return (
-              <Alert key={loan.id} className="bg-white border-2 border-primary/20 shadow-2xl rounded-[1.8rem] relative overflow-hidden py-4">
-                <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary"></div>
-                <AlertTriangle className="h-5 w-5 text-primary ml-1" />
-                <div className="pl-3">
+              <Alert key={loan.id} className="bg-white border-2 border-primary/20 shadow-2xl rounded-[1.8rem] relative overflow-hidden py-5">
+                <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-primary"></div>
+                <AlertTriangle className="h-6 w-6 text-primary ml-1" />
+                <div className="pl-4">
                   <div className="flex justify-between items-start">
-                    <AlertTitle className="font-black text-[12px] text-primary mb-0.5 uppercase tracking-tight">ঋণ পরিশোধের সময় হয়েছে</AlertTitle>
-                    <span className="bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase">
+                    <AlertTitle className="font-black text-[14px] text-primary mb-1 uppercase tracking-tight">ঋণ পরিশোধের সময় হয়েছে</AlertTitle>
+                    <span className="bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">
                       {daysLeft === 0 ? "আজই শেষ দিন" : `${daysLeft} দিন বাকি`}
                     </span>
                   </div>
-                  <AlertDescription className="text-[11px] font-bold opacity-80">
+                  <AlertDescription className="text-[13px] font-bold opacity-80">
                     {loan.personName}-কে {settings.currency}{(loan.totalAmount - loan.paidAmount).toLocaleString()} পরিশোধ করুন।
                   </AlertDescription>
                 </div>
@@ -257,24 +257,24 @@ export default function Dashboard() {
 
       {/* Budget Progress Section */}
       {Object.keys(settings.budgets).length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-black text-foreground tracking-tight uppercase flex items-center gap-2.5 px-1">
-            <Target className="w-5 h-5 text-primary" /> বাজেট ট্র্যাকার
+        <section className="space-y-5 px-1">
+          <h2 className="text-xl font-black text-foreground tracking-tight uppercase flex items-center gap-3">
+            <Target className="w-6 h-6 text-primary" /> বাজেট ট্র্যাকার
           </h2>
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {Object.entries(settings.budgets).map(([cat, limit]) => {
               const spent = categorySpending[cat] || 0;
               const percent = Math.min((spent / limit) * 100, 100);
               const isOverBudget = spent > limit;
               return (
-                <div key={cat} className="bg-white p-4 rounded-[1.8rem] shadow-lg border-2 border-primary/5 hover:border-primary/20 transition-all">
-                  <div className="flex justify-between text-[11px] font-black mb-2">
-                    <span className="text-muted-foreground uppercase tracking-widest truncate max-w-[120px]">{cat}</span>
+                <div key={cat} className="bg-white p-5 rounded-[1.8rem] shadow-lg border-2 border-primary/5 hover:border-primary/20 transition-all">
+                  <div className="flex justify-between text-[13px] font-black mb-3">
+                    <span className="text-muted-foreground uppercase tracking-widest truncate max-w-[150px]">{cat}</span>
                     <span className={cn("tracking-tighter", isOverBudget ? "text-primary" : "text-green-600")}>
                       {settings.currency}{spent.toLocaleString()} / {settings.currency}{limit.toLocaleString()}
                     </span>
                   </div>
-                  <Progress value={percent} className={cn("h-2.5 bg-muted/50", isOverBudget ? "bg-primary/20" : "bg-green-100")} />
+                  <Progress value={percent} className={cn("h-3 bg-muted/50", isOverBudget ? "bg-primary/20" : "bg-green-100")} />
                 </div>
               );
             })}
@@ -285,35 +285,35 @@ export default function Dashboard() {
       {/* AI Advisor */}
       <section className="px-1">
         <Card className="bg-white border-2 border-primary/10 shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-[11px] font-black flex items-center gap-2.5 text-primary uppercase tracking-[0.2em]">
-              <div className="p-2 bg-primary/10 rounded-xl"><Sparkles className="w-4 h-4" /></div>
+          <CardHeader className="p-7 pb-2">
+            <CardTitle className="text-[13px] font-black flex items-center gap-3 text-primary uppercase tracking-[0.2em]">
+              <div className="p-2.5 bg-primary/10 rounded-xl"><Sparkles className="w-5 h-5" /></div>
               AI আর্থিক উপদেষ্টা
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 pt-2 space-y-4">
+          <CardContent className="p-7 pt-2 space-y-5">
             {!aiSummary ? (
               <Button 
                 onClick={handleGenerateAiSummary} 
                 disabled={isAiLoading} 
-                className="w-full rounded-2xl bg-primary hover:bg-primary/90 font-black text-[11px] h-12 shadow-xl active:scale-95 transition-all"
+                className="w-full rounded-2xl bg-primary hover:bg-primary/90 font-black text-[13px] h-14 shadow-xl active:scale-95 transition-all"
               >
-                {isAiLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <><Sparkles className="w-4 h-4 mr-2" /> আজই পরামর্শ নিন</>}
+                {isAiLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <><Sparkles className="w-5 h-5 mr-2" /> আজই পরামর্শ নিন</>}
               </Button>
             ) : (
-              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
-                <div className="p-4 bg-primary/5 rounded-[1.5rem] border border-primary/10">
-                  <p className="text-[11px] font-bold leading-relaxed">{aiSummary.summary}</p>
+              <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
+                <div className="p-5 bg-primary/5 rounded-[1.5rem] border border-primary/10">
+                  <p className="text-[13px] font-bold leading-relaxed">{aiSummary.summary}</p>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {aiSummary.spendingInsights.map((tip, idx) => (
-                    <div key={idx} className="flex gap-3 items-start p-3 bg-muted/20 rounded-xl border border-transparent hover:border-primary/10 transition-all">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0 shadow-[0_0_6px_rgba(255,0,0,0.5)]" />
-                      <p className="text-[11px] font-bold text-muted-foreground leading-relaxed">{tip}</p>
+                    <div key={idx} className="flex gap-4 items-start p-4 bg-muted/20 rounded-xl border border-transparent hover:border-primary/10 transition-all">
+                      <div className="w-2 h-2 rounded-full bg-primary mt-2.5 shrink-0 shadow-[0_0_6px_rgba(255,0,0,0.5)]" />
+                      <p className="text-[13px] font-bold text-muted-foreground leading-relaxed">{tip}</p>
                     </div>
                   ))}
                 </div>
-                <Button variant="ghost" onClick={() => setAiSummary(null)} className="w-full text-[10px] font-black text-muted-foreground gap-2 h-9 hover:bg-primary/5"><RefreshCcw className="w-3 h-3" /> পুনরায় বিশ্লেষণ করুন</Button>
+                <Button variant="ghost" onClick={() => setAiSummary(null)} className="w-full text-[12px] font-black text-muted-foreground gap-2 h-11 hover:bg-primary/5"><RefreshCcw className="w-4 h-4" /> পুনরায় বিশ্লেষণ করুন</Button>
               </div>
             )}
           </CardContent>
@@ -321,14 +321,14 @@ export default function Dashboard() {
       </section>
 
       {/* Mini Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="bg-white border-2 border-primary/5 shadow-2xl rounded-[2rem] p-5 hover:border-primary/20 transition-all">
-          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 flex justify-between items-center">নগদ <ArrowUpCircle className="w-4 h-4 text-green-600" /></div>
-          <div className="text-xl font-black text-green-600 tracking-tighter truncate">{settings.currency}{cashBalance.toLocaleString()}</div>
+      <div className="grid grid-cols-2 gap-5 px-1">
+        <Card className="bg-white border-2 border-primary/5 shadow-2xl rounded-[2rem] p-6 hover:border-primary/20 transition-all">
+          <div className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">নগদ <ArrowUpCircle className="w-5 h-5 text-green-600" /></div>
+          <div className="text-2xl font-black text-green-600 tracking-tighter truncate">{settings.currency}{cashBalance.toLocaleString()}</div>
         </Card>
-        <Card className="bg-white border-2 border-primary/5 shadow-2xl rounded-[2rem] p-5 hover:border-primary/20 transition-all">
-          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 flex justify-between items-center">বকেয়া ঋণ <HandCoins className="w-4 h-4 text-primary" /></div>
-          <div className="text-xl font-black text-primary tracking-tighter truncate">{settings.currency}{currentDebt.toLocaleString()}</div>
+        <Card className="bg-white border-2 border-primary/5 shadow-2xl rounded-[2rem] p-6 hover:border-primary/20 transition-all">
+          <div className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">বকেয়া ঋণ <HandCoins className="w-5 h-5 text-primary" /></div>
+          <div className="text-2xl font-black text-primary tracking-tighter truncate">{settings.currency}{currentDebt.toLocaleString()}</div>
         </Card>
       </div>
     </div>
