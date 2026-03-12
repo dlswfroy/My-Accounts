@@ -60,7 +60,7 @@ export default function Dashboard() {
       <section className="flex justify-between items-start px-1 gap-4">
         <div className="space-y-1">
           <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
-          <div className="inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold border border-primary/20">
+          <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-1.5 rounded-full text-base font-black border border-primary/20 shadow-sm">
             {settings.userName}
           </div>
         </div>
@@ -82,20 +82,20 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Main Balance Card */}
+      {/* Main Balance Card (15% Smaller Board) */}
       <section>
-        <div className="bg-primary p-6 rounded-[2rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-white/10">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Wallet className="w-24 h-24" />
+        <div className="bg-primary p-5 rounded-[1.75rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-white/10">
+          <div className="absolute top-0 right-0 p-3 opacity-10">
+            <Wallet className="w-20 h-20" />
           </div>
-          <div className="space-y-4 relative z-10">
+          <div className="space-y-3 relative z-10">
             <div className="flex items-center gap-2">
               <p className="text-[11px] font-black opacity-80 tracking-widest uppercase">নিট অবশিষ্ট (ঋণ বাদে)</p>
             </div>
             <p className="text-4xl sm:text-5xl font-black tracking-tighter flex items-baseline gap-2 overflow-hidden text-ellipsis">
               <span className="text-xl font-bold opacity-70">{settings.currency}</span>{netBalance.toLocaleString()}
             </p>
-            <div className="inline-flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
+            <div className="inline-flex items-center gap-2 bg-black/20 px-4 py-1.5 rounded-xl border border-white/5">
               <Info className="w-4 h-4 text-white/60" />
               <p className="text-[11px] font-bold uppercase">নগদ জমা: {settings.currency}{cashBalance.toLocaleString()}</p>
             </div>
