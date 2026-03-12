@@ -67,8 +67,8 @@ export default function Dashboard() {
         {currentTime && (
           <div className="text-right flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-center gap-2 text-primary">
-              <Clock className="w-6 h-6" />
-              <span className="text-2xl font-black tracking-tighter tabular-nums drop-shadow-[0_0_8px_rgba(34,197,94,0.9)]">
+              <Clock className="w-7 h-7" />
+              <span className="text-[28px] font-black tracking-tighter tabular-nums drop-shadow-[0_0_8px_rgba(34,197,94,0.9)]">
                 {format(currentTime, 'hh:mm:ss a')}
               </span>
             </div>
@@ -82,11 +82,11 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Main Balance Card (15% Smaller Board) */}
+      {/* Main Balance Card (30% Smaller Board Total, with Black Border) */}
       <section>
-        <div className="bg-primary p-5 rounded-[1.75rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-white/10">
+        <div className="bg-primary p-4 rounded-[1.75rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-black">
           <div className="absolute top-0 right-0 p-3 opacity-10">
-            <Wallet className="w-20 h-20" />
+            <Wallet className="w-16 h-16" />
           </div>
           <div className="space-y-3 relative z-10">
             <div className="flex items-center gap-2">
