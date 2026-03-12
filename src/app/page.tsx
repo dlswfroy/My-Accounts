@@ -68,7 +68,7 @@ export default function Dashboard() {
           <div className="text-right flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-center gap-1.5 text-primary">
               <Clock className="w-5 h-5" />
-              <span className="text-xl font-black tracking-tighter tabular-nums">
+              <span className="text-xl font-black tracking-tighter tabular-nums drop-shadow-[0_0_8px_rgba(34,197,94,0.9)]">
                 {format(currentTime, 'hh:mm:ss a')}
               </span>
             </div>
