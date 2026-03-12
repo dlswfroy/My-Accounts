@@ -66,15 +66,15 @@ export default function Dashboard() {
         </div>
         {currentTime && (
           <div className="text-right flex flex-col items-end gap-1 shrink-0">
-            <div className="flex items-center gap-1.5 text-primary">
-              <Clock className="w-5 h-5" />
-              <span className="text-xl font-black tracking-tighter tabular-nums drop-shadow-[0_0_8px_rgba(34,197,94,0.9)]">
+            <div className="flex items-center gap-2 text-primary">
+              <Clock className="w-6 h-6" />
+              <span className="text-2xl font-black tracking-tighter tabular-nums drop-shadow-[0_0_8px_rgba(34,197,94,0.9)]">
                 {format(currentTime, 'hh:mm:ss a')}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <CalendarIcon className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <CalendarIcon className="w-4 h-4" />
+              <span className="text-[11.5px] font-bold uppercase tracking-wider">
                 {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: bn })}
               </span>
             </div>
