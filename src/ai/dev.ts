@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/spending-insight-tips.ts';
 import '@/ai/flows/monthly-financial-summary.ts';
+import '@/ai/flows/parse-voice-command.ts';

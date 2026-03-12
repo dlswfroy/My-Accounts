@@ -1,28 +1,103 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, ArrowUpCircle, ArrowDownCircle, HandCoins, AlertTriangle, Info, Sparkles, Loader2, RefreshCcw, Target } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
-import { bn } from 'date-fns/locale';
+import { Wallet, ArrowUpCircle, ArrowDownCircle, HandCoins, AlertTriangle, Info, Sparkles, Loader2, RefreshCcw, Target, Mic, MicOff } from 'lucide-react';
+import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { monthlyFinancialSummary, type MonthlyFinancialSummaryOutput } from '@/ai/flows/monthly-financial-summary';
+import { parseVoiceCommand } from '@/ai/flows/parse-voice-command';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
-  const { transactions, loans, settings, isLoading } = useTransactions();
+  const { transactions, loans, settings, isLoading, addTransaction } = useTransactions();
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [aiSummary, setAiSummary] = useState<MonthlyFinancialSummaryOutput | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // Voice State
+  const [isListening, setIsListening] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     setCurrentDate(new Date());
+    
+    // Initialize Speech Recognition
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.lang = 'bn-BD';
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+
+        recognitionRef.current.onresult = async (event: any) => {
+          const text = event.results[0][0].transcript;
+          setIsListening(false);
+          handleVoiceCommand(text);
+        };
+
+        recognitionRef.current.onerror = () => {
+          setIsListening(false);
+          toast({ variant: "destructive", title: "ভয়েস এরর", description: "কথা শুনতে সমস্যা হয়েছে। আবার চেষ্টা করুন।" });
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
   }, []);
+
+  const handleVoiceCommand = async (text: string) => {
+    setIsProcessingVoice(true);
+    toast({ title: "প্রসেসিং হচ্ছে...", description: `আপনি বলেছেন: "${text}"` });
+    
+    try {
+      const result = await parseVoiceCommand({
+        text,
+        incomeCategories: settings.incomeCategories,
+        expenseCategories: settings.expenseCategories
+      });
+
+      if (result.success) {
+        addTransaction({
+          type: result.type,
+          amount: result.amount,
+          category: result.category,
+          purpose: result.purpose,
+          date: new Date().toISOString().split('T')[0],
+          source: result.type === 'income' ? result.purpose : ''
+        });
+        toast({ title: "সফল!", description: `${result.amount} টাকা ${result.category} খাতে সেভ করা হয়েছে।` });
+      } else {
+        toast({ variant: "destructive", title: "ব্যর্থ", description: "দুঃখিত, আমি আপনার কথাটি বুঝতে পারিনি।" });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "ত্রুটি", description: "ভয়েস প্রসেসিংয়ে সমস্যা হয়েছে।" });
+    } finally {
+      setIsProcessingVoice(false);
+    }
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      if (!recognitionRef.current) {
+        toast({ variant: "destructive", title: "সমর্থিত নয়", description: "আপনার ব্রাউজার ভয়েস ইনপুট সমর্থন করে না।" });
+        return;
+      }
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
 
   if (isLoading || !currentDate) {
     return (
@@ -47,7 +122,7 @@ export default function Dashboard() {
 
   const handleGenerateAiSummary = async () => {
     if (transactions.length < 3) {
-      toast({ title: "তথ্য অপর্যাপ্ত", description: "সঠিক পরামর্শের জন্য অন্তত ৩টি লেনদেন প্রয়োজন।" });
+      toast({ title: "তথ্য অপর্যাপ্ত", description: "সফল বিশ্লেষণের জন্য অন্তত ৩টি লেনদেন প্রয়োজন।" });
       return;
     }
     setIsAiLoading(true);
@@ -71,7 +146,7 @@ export default function Dashboard() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="space-y-6 pb-6 animate-in fade-in duration-500">
+    <div className="space-y-6 pb-24 animate-in fade-in duration-500">
       <section className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <h2 className="text-xl font-black font-headline text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
@@ -98,6 +173,26 @@ export default function Dashboard() {
               <p className="text-[11px] font-black uppercase tracking-tight">নগদ জমা: {settings.currency}{cashBalance.toLocaleString()}</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Voice Input Section */}
+      <section className="flex justify-center -mt-10 relative z-20">
+        <div className="flex flex-col items-center gap-2">
+          <Button 
+            onClick={toggleListening}
+            disabled={isProcessingVoice}
+            className={cn(
+              "w-20 h-20 rounded-full shadow-2xl transition-all duration-300 border-4 border-white",
+              isListening ? "bg-green-500 scale-110 animate-pulse" : "bg-primary scale-100",
+              isProcessingVoice && "opacity-50"
+            )}
+          >
+            {isListening ? <MicOff className="w-8 h-8" /> : (isProcessingVoice ? <Loader2 className="w-8 h-8 animate-spin" /> : <Mic className="w-8 h-8" />)}
+          </Button>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-white px-3 py-1 rounded-full shadow-sm">
+            {isListening ? "বলুন..." : (isProcessingVoice ? "বুঝছি..." : "ভয়েস দিয়ে লিখুন")}
+          </p>
         </div>
       </section>
 
