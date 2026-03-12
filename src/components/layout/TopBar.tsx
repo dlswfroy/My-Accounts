@@ -20,7 +20,7 @@ export function TopBar() {
         <div className="bg-white/20 p-2 rounded-xl">
           <Wallet className="w-6 h-6" />
         </div>
-        <h1 className="text-xl font-bold font-headline tracking-tight">আমার হিসাব</h1>
+        <h1 className="text-[28px] font-bold font-headline tracking-tight">আমার হিসাব</h1>
       </div>
       <Button 
         variant="ghost" 
