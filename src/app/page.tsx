@@ -1,10 +1,12 @@
+
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, ArrowUpCircle, ArrowDownCircle, HandCoins, AlertTriangle, Info, Sparkles, Loader2, RefreshCcw, Target, Mic, MicOff } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
+import { Wallet, ArrowUpCircle, ArrowDownCircle, HandCoins, AlertTriangle, Info, Sparkles, Loader2, RefreshCcw, Target, Mic, MicOff, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { differenceInDays, format } from 'date-fns';
+import { bn } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -17,6 +19,7 @@ export default function Dashboard() {
   const { transactions, loans, settings, isLoading, addTransaction } = useTransactions();
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [aiSummary, setAiSummary] = useState<MonthlyFinancialSummaryOutput | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   
@@ -26,7 +29,13 @@ export default function Dashboard() {
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    setCurrentDate(new Date());
+    const now = new Date();
+    setCurrentDate(now);
+    setCurrentTime(now);
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
     
     // Initialize Speech Recognition
     if (typeof window !== 'undefined') {
@@ -53,6 +62,8 @@ export default function Dashboard() {
         };
       }
     }
+
+    return () => clearInterval(timer);
   }, []);
 
   const handleVoiceCommand = async (text: string) => {
@@ -147,11 +158,33 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-24 animate-in fade-in duration-500">
-      <section className="space-y-4">
-        <div className="flex justify-between items-center px-1">
+      {/* Header with Clock and Date */}
+      <section className="flex justify-between items-start px-1">
+        <div>
           <h2 className="text-xl font-black font-headline text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
-          <p className="text-[10px] bg-primary/10 text-primary px-4 py-1.5 rounded-full uppercase tracking-wider font-black border-2 border-primary/20 truncate max-w-[140px]">{settings.userName}</p>
+          <p className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider font-black border-2 border-primary/20 inline-block mt-1">
+            {settings.userName}
+          </p>
         </div>
+        {currentTime && (
+          <div className="text-right flex flex-col items-end gap-1">
+            <div className="flex items-center gap-1.5 text-primary">
+              <Clock className="w-4 h-4" />
+              <span className="text-lg font-black tracking-tighter tabular-nums">
+                {format(currentTime, 'hh:mm:ss a')}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <CalendarIcon className="w-3 h-3" />
+              <span className="text-[9px] font-bold uppercase tracking-widest">
+                {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: bn })}
+              </span>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-4">
         <div className="bg-primary p-6 rounded-[2.5rem] text-primary-foreground shadow-2xl relative overflow-hidden group border-4 border-white/20">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
             <Wallet className="w-24 h-24" />
@@ -195,6 +228,32 @@ export default function Dashboard() {
           </p>
         </div>
       </section>
+
+      {/* Upcoming Loans Alerts */}
+      {upcomingLoanAlerts.length > 0 && (
+        <div className="space-y-4 px-1">
+          {upcomingLoanAlerts.map(loan => {
+            const daysLeft = differenceInDays(new Date(loan.dueDate!), currentDate);
+            return (
+              <Alert key={loan.id} className="bg-white border-2 border-primary/20 shadow-2xl rounded-[1.8rem] relative overflow-hidden py-4">
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary"></div>
+                <AlertTriangle className="h-5 w-5 text-primary ml-1" />
+                <div className="pl-3">
+                  <div className="flex justify-between items-start">
+                    <AlertTitle className="font-black text-[12px] text-primary mb-0.5 uppercase tracking-tight">ঋণ পরিশোধের সময় হয়েছে</AlertTitle>
+                    <span className="bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase">
+                      {daysLeft === 0 ? "আজই শেষ দিন" : `${daysLeft} দিন বাকি`}
+                    </span>
+                  </div>
+                  <AlertDescription className="text-[11px] font-bold opacity-80">
+                    {loan.personName}-কে {settings.currency}{(loan.totalAmount - loan.paidAmount).toLocaleString()} পরিশোধ করুন।
+                  </AlertDescription>
+                </div>
+              </Alert>
+            );
+          })}
+        </div>
+      )}
 
       {/* Budget Progress Section */}
       {Object.keys(settings.budgets).length > 0 && (
@@ -260,22 +319,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </section>
-
-      {/* Upcoming Loans */}
-      {upcomingLoanAlerts.length > 0 && (
-        <div className="space-y-4 px-1">
-          {upcomingLoanAlerts.map(loan => (
-            <Alert key={loan.id} className="bg-white border-2 border-primary/20 shadow-2xl rounded-[1.8rem] relative overflow-hidden py-4">
-              <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary"></div>
-              <AlertTriangle className="h-5 w-5 text-primary ml-1" />
-              <div className="pl-3">
-                <AlertTitle className="font-black text-[12px] text-primary mb-0.5 uppercase tracking-tight">ঋণ পরিশোধের সময় হয়েছে</AlertTitle>
-                <AlertDescription className="text-[11px] font-bold opacity-80">{loan.personName}-কে {settings.currency}{(loan.totalAmount - loan.paidAmount).toLocaleString()} পরিশোধ করুন।</AlertDescription>
-              </div>
-            </Alert>
-          ))}
-        </div>
-      )}
 
       {/* Mini Stats */}
       <div className="grid grid-cols-2 gap-4">
