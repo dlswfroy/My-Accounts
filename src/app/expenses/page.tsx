@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -8,6 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Tag, ShoppingCart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { bn } from 'date-fns/locale';
@@ -139,14 +151,35 @@ export default function MyExpenses() {
                 <span className="font-bold text-primary">
                   -{settings.currency}{t.amount.toLocaleString()}
                 </span>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => deleteTransaction(t.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl max-w-[90vw]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>আপনি কি নিশ্চিত?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        এই ব্যয়ের রেকর্ডটি মুছে ফেলা হবে। এটি আর ফিরে পাওয়া সম্ভব নয়।
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl">না</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => deleteTransaction(t.id)}
+                        className="bg-primary text-white rounded-xl"
+                      >
+                        হ্যাঁ, মুছে ফেলুন
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           ))

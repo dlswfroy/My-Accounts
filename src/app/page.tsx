@@ -57,7 +57,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 pb-20 animate-in fade-in duration-500">
       {/* Header with Clock and Date */}
-      <section className="flex justify-between items-start px-1">
+      <section className="flex justify-between items-start px-1 gap-4">
         <div className="space-y-1">
           <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
           <div className="inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold border border-primary/20">
@@ -65,7 +65,7 @@ export default function Dashboard() {
           </div>
         </div>
         {currentTime && (
-          <div className="text-right flex flex-col items-end gap-1">
+          <div className="text-right flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-center gap-1.5 text-primary">
               <Clock className="w-5 h-5" />
               <span className="text-xl font-black tracking-tighter tabular-nums">
@@ -92,7 +92,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <p className="text-[11px] font-black opacity-80 tracking-widest uppercase">নিট অবশিষ্ট (ঋণ বাদে)</p>
             </div>
-            <p className="text-5xl font-black tracking-tighter flex items-baseline gap-2">
+            <p className="text-4xl sm:text-5xl font-black tracking-tighter flex items-baseline gap-2 overflow-hidden text-ellipsis">
               <span className="text-xl font-bold opacity-70">{settings.currency}</span>{netBalance.toLocaleString()}
             </p>
             <div className="inline-flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
@@ -132,7 +132,7 @@ export default function Dashboard() {
       {/* Budget Progress */}
       {Object.keys(settings.budgets).length > 0 && (
         <section className="space-y-4 px-1">
-          <h2 className="text-lg font-black text-foreground tracking-tight uppercase flex items-center gap-2">
+          <h2 className="text-xl font-black text-foreground tracking-tight uppercase flex items-center gap-2">
             <Target className="w-5 h-5 text-primary" /> বাজেট ট্র্যাকার
           </h2>
           <div className="grid gap-4">
@@ -141,8 +141,8 @@ export default function Dashboard() {
               const percent = Math.min((spent / limit) * 100, 100);
               const isOverBudget = spent > limit;
               return (
-                <div key={cat} className="bg-white p-4 rounded-2xl shadow-sm border-2 border-primary/5">
-                  <div className="flex justify-between text-[11px] font-black mb-3">
+                <div key={cat} className="bg-white p-5 rounded-2xl shadow-sm border-2 border-primary/5">
+                  <div className="flex justify-between text-[12px] font-black mb-3">
                     <span className="text-muted-foreground uppercase tracking-widest">{cat}</span>
                     <span className={cn(isOverBudget ? "text-primary" : "text-green-600")}>
                       {settings.currency}{spent.toLocaleString()} / {settings.currency}{limit.toLocaleString()}
@@ -159,12 +159,12 @@ export default function Dashboard() {
       {/* Mini Stats Grid */}
       <div className="grid grid-cols-2 gap-4 px-1">
         <Card className="bg-white border-2 border-primary/5 shadow-md rounded-[1.5rem] p-5">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">নগদ জমা <ArrowUpCircle className="w-4 h-4 text-green-600" /></p>
-          <p className="text-xl font-black text-green-600 tracking-tighter">{settings.currency}{cashBalance.toLocaleString()}</p>
+          <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">নগদ জমা <ArrowUpCircle className="w-4 h-4 text-green-600" /></p>
+          <p className="text-2xl font-black text-green-600 tracking-tighter">{settings.currency}{cashBalance.toLocaleString()}</p>
         </Card>
         <Card className="bg-white border-2 border-primary/5 shadow-md rounded-[1.5rem] p-5">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">বকেয়া ঋণ <HandCoins className="w-4 h-4 text-primary" /></p>
-          <p className="text-xl font-black text-primary tracking-tighter">{settings.currency}{currentDebt.toLocaleString()}</p>
+          <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">বকেয়া ঋণ <HandCoins className="w-4 h-4 text-primary" /></p>
+          <p className="text-2xl font-black text-primary tracking-tighter">{settings.currency}{currentDebt.toLocaleString()}</p>
         </Card>
       </div>
     </div>

@@ -10,6 +10,17 @@ import { Label } from '@/components/ui/label';
 import { User, Tag, Plus, X, Target, Wallet, TrendingDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 
 export default function Settings() {
   const { settings, updateSettings, isLoading } = useTransactions();
@@ -142,9 +153,25 @@ export default function Settings() {
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
               {settings.incomeCategories.map(cat => (
-                <Badge key={cat} variant="secondary" className="rounded-xl py-1.5 px-3 bg-green-50 text-green-700 border-green-100 font-bold text-[10px]">
-                  {cat} <X className="w-3.5 h-3.5 ml-2 cursor-pointer hover:text-red-500" onClick={() => handleRemoveCategory('income', cat)} />
-                </Badge>
+                <AlertDialog key={cat}>
+                  <AlertDialogTrigger asChild>
+                    <Badge variant="secondary" className="rounded-xl py-1.5 px-3 bg-green-50 text-green-700 border-green-100 font-bold text-[10px] cursor-pointer hover:bg-red-50 hover:text-red-500 transition-colors">
+                      {cat} <X className="w-3.5 h-3.5 ml-2" />
+                    </Badge>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl max-w-[90vw]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ক্যাটাগরি মুছে ফেলবেন?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        "{cat}" ক্যাটাগরি মুছে ফেলা হবে।
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl">না</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleRemoveCategory('income', cat)} className="bg-primary text-white rounded-xl">হ্যাঁ</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ))}
             </div>
           </div>
@@ -167,9 +194,25 @@ export default function Settings() {
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
               {settings.expenseCategories.map(cat => (
-                <Badge key={cat} variant="secondary" className="rounded-xl py-1.5 px-3 bg-primary/5 text-primary border-primary/10 font-bold text-[10px]">
-                  {cat} <X className="w-3.5 h-3.5 ml-2 cursor-pointer hover:text-red-500" onClick={() => handleRemoveCategory('expense', cat)} />
-                </Badge>
+                <AlertDialog key={cat}>
+                  <AlertDialogTrigger asChild>
+                    <Badge variant="secondary" className="rounded-xl py-1.5 px-3 bg-primary/5 text-primary border-primary/10 font-bold text-[10px] cursor-pointer hover:bg-red-50 hover:text-red-500 transition-colors">
+                      {cat} <X className="w-3.5 h-3.5 ml-2" />
+                    </Badge>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl max-w-[90vw]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ক্যাটাগরি মুছে ফেলবেন?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        "{cat}" ক্যাটাগরি মুছে ফেলা হবে।
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl">না</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleRemoveCategory('expense', cat)} className="bg-primary text-white rounded-xl">হ্যাঁ</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ))}
             </div>
           </div>

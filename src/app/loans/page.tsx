@@ -8,6 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, HandCoins, CheckCircle2, History, Calendar as CalendarIcon, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { bn } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
@@ -254,14 +265,35 @@ export default function LoansPage() {
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteLoan(loan.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-2xl max-w-[90vw]">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>ঋণ মুছে ফেলতে চান?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {loan.personName}-এর ঋণের সম্পূর্ণ রেকর্ড মুছে ফেলা হবে।
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl">না</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteLoan(loan.id)}
+                          className="bg-primary text-white rounded-xl"
+                        >
+                          হ্যাঁ, মুছে ফেলুন
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
 
