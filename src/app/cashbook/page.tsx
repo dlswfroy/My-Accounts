@@ -1,12 +1,12 @@
 
 "use client"
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTransactions } from '@/components/providers/TransactionProvider';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowUpCircle, ArrowDownCircle, BookOpen, Search, Wallet, HandCoins } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowUpCircle, ArrowDownCircle, BookOpen, Search, Wallet, HandCoins, Calendar as CalendarIcon } from 'lucide-react';
+import { format, parseISO, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { bn } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,36 @@ export default function CashbookPage() {
   const { transactions, loans, settings, isLoading } = useTransactions();
   const [selectedSector, setSelectedSector] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(now, 'MM'));
+  const [selectedYear, setSelectedYear] = useState<string>(format(now, 'yyyy'));
+
+  const months = [
+    { value: '01', label: 'জানুয়ারি' },
+    { value: '02', label: 'ফেব্রুয়ারি' },
+    { value: '03', label: 'মার্চ' },
+    { value: '04', label: 'এপ্রিল' },
+    { value: '05', label: 'মে' },
+    { value: '06', label: 'জুন' },
+    { value: '07', label: 'জুলাই' },
+    { value: '08', label: 'আগস্ট' },
+    { value: '09', label: 'সেপ্টেম্বর' },
+    { value: '10', label: 'অক্টোবর' },
+    { value: '11', label: 'নভেম্বর' },
+    { value: '12', label: 'ডিসেম্বর' },
+  ];
+
+  const years = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const yearsSet = new Set<string>();
+    for (let y = 2020; y <= currentYear + 5; y++) {
+      yearsSet.add(y.toString());
+    }
+    transactions.forEach(t => yearsSet.add(t.date.substring(0, 4)));
+    loans.forEach(l => yearsSet.add(l.date.substring(0, 4)));
+    return Array.from(yearsSet).sort().reverse();
+  }, [transactions, loans]);
 
   const sectors = useMemo(() => {
     const categories = Array.from(new Set([...settings.incomeCategories, ...settings.expenseCategories, 'ঋণ পরিশোধ']));
@@ -23,8 +53,18 @@ export default function CashbookPage() {
   }, [settings, loans]);
 
   const filteredData = useMemo(() => {
-    let txs = transactions;
-    let lns = loans;
+    const start = startOfMonth(new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1));
+    const end = endOfMonth(start);
+
+    let txs = transactions.filter(t => {
+      const date = parseISO(t.date);
+      return isWithinInterval(date, { start, end });
+    });
+
+    let lns = loans.filter(l => {
+      const date = parseISO(l.date);
+      return isWithinInterval(date, { start, end });
+    });
 
     if (selectedSector !== "all") {
       if (selectedSector.startsWith("ঋণ: ")) {
@@ -46,7 +86,7 @@ export default function CashbookPage() {
     }
 
     return { transactions: txs, loans: lns };
-  }, [selectedSector, searchQuery, transactions, loans]);
+  }, [selectedMonth, selectedYear, selectedSector, searchQuery, transactions, loans]);
 
   const summary = useMemo(() => {
     const incomeTrans = filteredData.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
@@ -72,39 +112,74 @@ export default function CashbookPage() {
   const isLoanSector = selectedSector.startsWith("ঋণ: ");
   const isAllSelected = selectedSector === "all";
   const isIncomeCategory = settings.incomeCategories.includes(selectedSector);
-  const isExpenseCategory = settings.expenseCategories.includes(selectedSector) || selectedSector === 'ঋণ পরিশোধ';
 
   return (
     <div className="space-y-6 pb-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-3">
-        <div className="bg-primary p-2 rounded-2xl text-primary-foreground shadow-lg">
-          <BookOpen className="w-6 h-6" />
-        </div>
-        <h1 className="text-2xl font-black text-primary uppercase tracking-tight">ক্যাশ বুক</h1>
-      </div>
-
-      <div className="space-y-3">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="লেনদেন খুঁজুন..." 
-            className="pl-11 rounded-2xl h-11 border-2 border-primary/5 focus:border-primary/20 bg-white" 
-            value={searchQuery} 
-            onChange={(e) => setSearchQuery(e.target.value)} 
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary p-2 rounded-2xl text-primary-foreground shadow-lg">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-black text-primary uppercase tracking-tight">ক্যাশ বুক</h1>
         </div>
 
-        <Select value={selectedSector} onValueChange={setSelectedSector}>
-          <SelectTrigger className="w-full h-11 rounded-2xl border-2 border-primary/5 bg-white font-bold text-sm">
-            <SelectValue placeholder="খাত বেছে নিন" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl">
-            <SelectItem value="all" className="font-bold">সকল খাতা</SelectItem>
-            {sectors.filter(s => s !== "all").map(sector => (
-              <SelectItem key={sector} value={sector} className="font-medium text-sm">{sector}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Date Filters */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-primary/5 shadow-sm">
+            <CalendarIcon className="w-4 h-4 text-primary ml-2 hidden sm:block" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="border-none shadow-none focus:ring-0 font-bold text-sm h-10">
+                <SelectValue placeholder="মাস" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl max-h-[300px]">
+                {months.map(m => (
+                  <SelectItem key={m.value} value={m.value} className="font-bold">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-primary/5 shadow-sm">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="border-none shadow-none focus:ring-0 font-bold text-sm h-10">
+                <SelectValue placeholder="সাল" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl max-h-[300px]">
+                {years.map(year => (
+                  <SelectItem key={year} value={year} className="font-bold">
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="লেনদেন খুঁজুন..." 
+              className="pl-11 rounded-2xl h-11 border-2 border-primary/5 focus:border-primary/20 bg-white" 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+            />
+          </div>
+
+          <Select value={selectedSector} onValueChange={setSelectedSector}>
+            <SelectTrigger className="w-full h-11 rounded-2xl border-2 border-primary/5 bg-white font-bold text-sm">
+              <SelectValue placeholder="খাত বেছে নিন" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl">
+              <SelectItem value="all" className="font-bold">সকল খাতা</SelectItem>
+              {sectors.filter(s => s !== "all").map(sector => (
+                <SelectItem key={sector} value={sector} className="font-medium text-sm">{sector}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Summary Cards */}
