@@ -20,19 +20,21 @@ export default function Reports() {
     setIsMounted(true);
   }, []);
 
-  // ড্রপডাউন মেনুর জন্য চলতি বছরের ১২টি মাস এবং ডেটা থাকা মাসগুলোর লিস্ট তৈরি
+  // ড্রপডাউন মেনুর জন্য বিগত ২ বছরের মাস এবং ডেটা থাকা মাসগুলোর লিস্ট তৈরি
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     const now = new Date();
     const currentYear = now.getFullYear();
 
-    // চলতি বছরের ১২টি মাস যোগ করা হচ্ছে
-    for (let i = 1; i <= 12; i++) {
-      const monthStr = i < 10 ? `0${i}` : `${i}`;
-      months.add(`${currentYear}-${monthStr}`);
+    // চলতি এবং গত বছরের ২৪টি মাস ডিফল্টভাবে যোগ করা হচ্ছে
+    for (let year = currentYear - 1; year <= currentYear; year++) {
+      for (let i = 1; i <= 12; i++) {
+        const monthStr = i < 10 ? `0${i}` : `${i}`;
+        months.add(`${year}-${monthStr}`);
+      }
     }
     
-    // যদি লেনদেন বা ঋণের ডেটা অন্য কোনো বছরের থাকে, সেগুলোও যোগ করা হচ্ছে
+    // যদি লেনদেন বা ঋণের ডেটা আরও পুরোনো বছরের থাকে, সেগুলোও যোগ করা হচ্ছে
     transactions.forEach(t => months.add(t.date.substring(0, 7)));
     loans.forEach(l => months.add(l.date.substring(0, 7)));
     
@@ -71,7 +73,6 @@ export default function Reports() {
     
     const cashBalance = (totalIncome + totalLoanTaken) - totalExpense;
     
-    // গ্রাফের জন্য ব্যয়গুলো ক্যাটাগরি অনুযায়ী গ্রুপ করা হচ্ছে
     const expenseByCategory = filteredData.transactions
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => {
@@ -105,7 +106,6 @@ export default function Reports() {
           <h1 className="text-2xl font-black font-headline text-primary uppercase">হিসাব রিপোর্ট</h1>
         </div>
 
-        {/* মাস সিলেকশন ড্রপডাউন */}
         <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border-2 border-primary/5 shadow-sm">
           <CalendarIcon className="w-5 h-5 text-primary ml-2" />
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
