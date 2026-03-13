@@ -14,36 +14,48 @@ import { bn } from 'date-fns/locale';
 export default function Reports() {
   const { transactions, loans, settings, isLoading } = useTransactions();
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
+  
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(now, 'MM'));
+  const [selectedYear, setSelectedYear] = useState<string>(format(now, 'yyyy'));
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // ড্রপডাউন মেনুর জন্য বিগত ২ বছরের মাস এবং ডেটা থাকা মাসগুলোর লিস্ট তৈরি
-  const availableMonths = useMemo(() => {
-    const months = new Set<string>();
-    const now = new Date();
-    const currentYear = now.getFullYear();
+  const months = [
+    { value: '01', label: 'জানুয়ারি' },
+    { value: '02', label: 'ফেব্রুয়ারি' },
+    { value: '03', label: 'মার্চ' },
+    { value: '04', label: 'এপ্রিল' },
+    { value: '05', label: 'মে' },
+    { value: '06', label: 'জুন' },
+    { value: '07', label: 'জুলাই' },
+    { value: '08', label: 'আগস্ট' },
+    { value: '09', label: 'সেপ্টেম্বর' },
+    { value: '10', label: 'অক্টোবর' },
+    { value: '11', label: 'নভেম্বর' },
+    { value: '12', label: 'ডিসেম্বর' },
+  ];
 
-    // চলতি এবং গত বছরের ২৪টি মাস ডিফল্টভাবে যোগ করা হচ্ছে
-    for (let year = currentYear - 1; year <= currentYear; year++) {
-      for (let i = 1; i <= 12; i++) {
-        const monthStr = i < 10 ? `0${i}` : `${i}`;
-        months.add(`${year}-${monthStr}`);
-      }
+  const years = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const yearsSet = new Set<string>();
+    
+    // ২০২০ থেকে বর্তমান + ৫ বছর পর্যন্ত
+    for (let y = 2020; y <= currentYear + 5; y++) {
+      yearsSet.add(y.toString());
     }
     
-    // যদি লেনদেন বা ঋণের ডেটা আরও পুরোনো বছরের থাকে, সেগুলোও যোগ করা হচ্ছে
-    transactions.forEach(t => months.add(t.date.substring(0, 7)));
-    loans.forEach(l => months.add(l.date.substring(0, 7)));
+    // লেনদেন বা ঋণের ডেটা থাকলে ওই বছরগুলোও যোগ হবে
+    transactions.forEach(t => yearsSet.add(t.date.substring(0, 4)));
+    loans.forEach(l => yearsSet.add(l.date.substring(0, 4)));
     
-    // মাসগুলোকে ক্রমানুসারে সাজিয়ে বড় থেকে ছোট হিসেবে রিটার্ন করা হচ্ছে
-    return Array.from(months).sort().reverse();
+    return Array.from(yearsSet).sort().reverse();
   }, [transactions, loans]);
 
   const filteredData = useMemo(() => {
-    const start = startOfMonth(parseISO(`${selectedMonth}-01`));
+    const start = startOfMonth(new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1));
     const end = endOfMonth(start);
 
     const filteredTransactions = transactions.filter(t => {
@@ -57,7 +69,7 @@ export default function Reports() {
     });
 
     return { transactions: filteredTransactions, loans: filteredLoans };
-  }, [selectedMonth, transactions, loans]);
+  }, [selectedMonth, selectedYear, transactions, loans]);
 
   const stats = useMemo(() => {
     const totalIncome = filteredData.transactions
@@ -106,26 +118,45 @@ export default function Reports() {
           <h1 className="text-2xl font-black font-headline text-primary uppercase">হিসাব রিপোর্ট</h1>
         </div>
 
-        <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border-2 border-primary/5 shadow-sm">
-          <CalendarIcon className="w-5 h-5 text-primary ml-2" />
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="border-none shadow-none focus:ring-0 font-bold text-base h-10">
-              <SelectValue placeholder="মাস নির্বাচন করুন" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl">
-              {availableMonths.map(month => (
-                <SelectItem key={month} value={month} className="font-bold">
-                  {format(parseISO(`${month}-01`), 'MMMM yyyy', { locale: bn })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-2">
+          {/* মাস সিলেকশন */}
+          <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-primary/5 shadow-sm">
+            <CalendarIcon className="w-4 h-4 text-primary ml-2 hidden sm:block" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="border-none shadow-none focus:ring-0 font-bold text-sm h-10">
+                <SelectValue placeholder="মাস" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl max-h-[300px]">
+                {months.map(m => (
+                  <SelectItem key={m.value} value={m.value} className="font-bold">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* বছর সিলেকশন */}
+          <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-primary/5 shadow-sm">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="border-none shadow-none focus:ring-0 font-bold text-sm h-10">
+                <SelectValue placeholder="সাল" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-2 border-primary/5 shadow-xl max-h-[300px]">
+                {years.map(year => (
+                  <SelectItem key={year} value={year} className="font-bold">
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       <Card className="bg-white border-none shadow-2xl rounded-[2.5rem] overflow-hidden border-2 border-primary/5">
         <CardHeader className="bg-primary text-primary-foreground p-8">
-          <CardTitle className="text-xs font-black opacity-90 uppercase tracking-widest">নগদ অবশিষ্ট (এই মাসে)</CardTitle>
+          <CardTitle className="text-xs font-black opacity-90 uppercase tracking-widest">নগদ অবশিষ্ট</CardTitle>
           <div className="flex justify-between items-end mt-4">
             <p className="text-4xl font-black tracking-tighter">
               {settings.currency}{stats.cashBalance.toLocaleString()}
@@ -188,7 +219,7 @@ export default function Reports() {
 
       <section className="space-y-4">
         <h2 className="text-lg font-black text-foreground tracking-tight uppercase flex items-center gap-2">
-          <HandCoins className="w-5 h-5 text-primary" /> ঋণের অবস্থা (এই মাসে)
+          <HandCoins className="w-5 h-5 text-primary" /> ঋণের অবস্থা
         </h2>
         <Card className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-primary/5 space-y-5">
           <div className="flex justify-between items-center">
