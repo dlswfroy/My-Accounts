@@ -20,15 +20,23 @@ export default function Reports() {
     setIsMounted(true);
   }, []);
 
-  // Generate a list of unique months from transactions and loans for the dropdown
+  // ড্রপডাউন মেনুর জন্য চলতি বছরের ১২টি মাস এবং ডেটা থাকা মাসগুলোর লিস্ট তৈরি
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
-    // Add current month by default
-    months.add(format(new Date(), 'yyyy-MM'));
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    // চলতি বছরের ১২টি মাস যোগ করা হচ্ছে
+    for (let i = 1; i <= 12; i++) {
+      const monthStr = i < 10 ? `0${i}` : `${i}`;
+      months.add(`${currentYear}-${monthStr}`);
+    }
     
+    // যদি লেনদেন বা ঋণের ডেটা অন্য কোনো বছরের থাকে, সেগুলোও যোগ করা হচ্ছে
     transactions.forEach(t => months.add(t.date.substring(0, 7)));
     loans.forEach(l => months.add(l.date.substring(0, 7)));
     
+    // মাসগুলোকে ক্রমানুসারে সাজিয়ে বড় থেকে ছোট হিসেবে রিটার্ন করা হচ্ছে
     return Array.from(months).sort().reverse();
   }, [transactions, loans]);
 
@@ -63,7 +71,7 @@ export default function Reports() {
     
     const cashBalance = (totalIncome + totalLoanTaken) - totalExpense;
     
-    // Expense grouping for chart
+    // গ্রাফের জন্য ব্যয়গুলো ক্যাটাগরি অনুযায়ী গ্রুপ করা হচ্ছে
     const expenseByCategory = filteredData.transactions
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => {
@@ -97,7 +105,7 @@ export default function Reports() {
           <h1 className="text-2xl font-black font-headline text-primary uppercase">হিসাব রিপোর্ট</h1>
         </div>
 
-        {/* Month Selector */}
+        {/* মাস সিলেকশন ড্রপডাউন */}
         <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border-2 border-primary/5 shadow-sm">
           <CalendarIcon className="w-5 h-5 text-primary ml-2" />
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
