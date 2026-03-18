@@ -82,22 +82,25 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Main Balance Card (Small with Black Border) */}
+      {/* Main Balance Card (White Background with Dynamic Colors) */}
       <section className="flex justify-center">
-        <div className="bg-primary p-4 rounded-[1.75rem] text-primary-foreground shadow-2xl relative overflow-hidden border-4 border-black w-full max-w-[90%] transform scale-95">
+        <div className="bg-white p-5 rounded-[1.75rem] shadow-2xl relative overflow-hidden border-4 border-black w-full max-w-[90%] transform scale-95">
           <div className="absolute top-0 right-0 p-3 opacity-15">
-            <Wallet className="w-16 h-16" />
+            <Wallet className="w-16 h-16 text-black" />
           </div>
           <div className="space-y-2 relative z-10">
             <div className="flex items-center gap-2">
-              <p className="text-[12px] font-black opacity-90 tracking-widest uppercase">নিট অবশিষ্ট (ঋণ বাদে)</p>
+              <p className="text-[12px] font-black text-muted-foreground tracking-widest uppercase">নিট অবশিষ্ট (ঋণ বাদে)</p>
             </div>
-            <p className="text-4xl sm:text-5xl font-black tracking-tighter flex items-baseline gap-2 overflow-hidden text-ellipsis">
-              <span className="text-xl font-bold opacity-80">{settings.currency}</span>{netBalance.toLocaleString()}
+            <p className={cn(
+              "text-4xl sm:text-5xl font-black tracking-tighter flex items-baseline gap-2 overflow-hidden text-ellipsis",
+              netBalance >= 0 ? "text-green-600" : "text-primary"
+            )}>
+              <span className="text-xl font-bold opacity-70">{settings.currency}</span>{netBalance.toLocaleString()}
             </p>
-            <div className="inline-flex items-center gap-2 bg-black/30 px-4 py-2 rounded-xl border border-white/10">
-              <Info className="w-4 h-4 text-white" />
-              <p className="text-[12px] font-black uppercase">নগদ জমা: {settings.currency}{cashBalance.toLocaleString()}</p>
+            <div className="inline-flex items-center gap-2 bg-muted/20 px-4 py-2 rounded-xl border border-black/5">
+              <Info className="w-4 h-4 text-muted-foreground" />
+              <p className="text-[12px] font-black uppercase text-muted-foreground">নগদ জমা: {settings.currency}{cashBalance.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -170,3 +173,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
