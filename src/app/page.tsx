@@ -65,7 +65,7 @@ export default function Dashboard() {
         </div>
         {currentTime && (
           <div className="text-right flex flex-col items-end gap-1 shrink-0">
-            <div className="flex items-center gap-2 bg-primary px-4 py-1.5 rounded-2xl border-2 border-black shadow-lg text-white">
+            <div className="flex items-center gap-2 bg-primary px-4 py-1.5 rounded-2xl border-2 border-white shadow-[0_0_15px_rgba(34,197,94,0.6)] text-white">
               <Clock className="w-6 h-6" />
               <span className="text-2xl font-black tracking-tighter tabular-nums">
                 {format(currentTime, 'hh:mm:ss a')}
@@ -81,9 +81,9 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Main Balance Card (White Background with Dynamic Colors) */}
+      {/* Main Balance Card (White Background with Red Border) */}
       <section className="flex justify-center">
-        <div className="bg-white p-5 rounded-[1.75rem] shadow-2xl relative overflow-hidden border-4 border-black w-full max-w-[90%] transform scale-95">
+        <div className="bg-white p-5 rounded-[1.75rem] shadow-2xl relative overflow-hidden border-4 border-primary w-full max-w-[90%] transform scale-95">
           <div className="absolute top-0 right-0 p-3 opacity-15">
             <Wallet className="w-16 h-16 text-black" />
           </div>
