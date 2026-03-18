@@ -56,10 +56,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-20 animate-in fade-in duration-500">
-      {/* Header with Clock and Date */}
-      <section className="flex justify-between items-start px-1 gap-4">
+      {/* Header with Clock and User Name */}
+      <section className="flex justify-between items-center px-1 gap-4">
         <div className="space-y-1">
-          <h2 className="text-[28px] font-black text-foreground tracking-tight uppercase">সারসংক্ষেপ</h2>
           <div className="inline-flex items-center bg-primary/10 text-primary px-5 py-2 rounded-full text-base font-black border-2 border-primary/20 shadow-md">
             {settings.userName}
           </div>
@@ -173,4 +172,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
